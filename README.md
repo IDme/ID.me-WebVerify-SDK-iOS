@@ -11,7 +11,7 @@ The ID.me WebVerify SDK for iOS is a library that allows you to verify a user's 
 Get it using CocoaPods
 
 ```
-pod install IDmeWebVerify
+pod 'IDmeWebVerify'
 ```
 
 or download it on Github.
