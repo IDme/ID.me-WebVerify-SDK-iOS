@@ -95,5 +95,3 @@ The following properties of the NSError object should be referenced by your app 
 
 ## Internet Connectivity
 Internet connectivity is required, as the verificaiton occurs through a webView.
-
-## Contact
