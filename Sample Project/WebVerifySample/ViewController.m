@@ -27,6 +27,7 @@
     self.textView = textView;
     [textView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [textView setFont:[UIFont systemFontOfSize:15.0f]];
+    [textView setEditable:NO];
     [self.view addSubview:textView];
     
     // button
@@ -49,7 +50,7 @@
                                                                       metrics:nil
                                                                         views:NSDictionaryOfVariableBindings(textView)]];
     
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-20-[textView(300)]-20-[button(44)]"
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-20-[textView(250)]-20-[button(44)]"
                                                                       options:0
                                                                       metrics:nil
                                                                         views:NSDictionaryOfVariableBindings(textView, button)]];

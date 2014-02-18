@@ -17,7 +17,7 @@ pod install IDmeWebVerify
 or download it on Github.
 
 ## Setup
-1. Drag the **ID.me WebVerify SDK** file into your project. This includes the following files
+1. Drag the **ID.me WebVerify SDK** folder into your project. This will add the following files:
 	- `IDmeWebVerify.h`
 	- `IDmeWebVerifyNavigationController.h`
 2. Import `IDmeWebVerify.h` into one of your projects, preferably an instance or subclassed instance of `UIViewController`.
