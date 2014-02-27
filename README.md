@@ -78,7 +78,7 @@ Each successful request returns the following information:
 All potential errors that could occur are explained in the next section.
 
 ## Error Handling
-There are four potential outcomes during the group affiliation verification process, three of which are errors. All of the errors are returned in the `IDmeWebVerifyVerificationResults` block, which is the last parameter in verification method described above. Each error will return a non-nil NSError object, and a nil NSDictionary object. The three verification related errors can be found in the `IDmeVerifyErrorCode` typedef, which deals with all errors in the SDK. The three verification related errors are as follows:
+There are four potential outcomes during the group affiliation verification process, three of which are errors. All of the errors are returned in the `IDmeWebVerifyVerificationResults` block, which is the last parameter in verification method described above. Each error will return a non-nil NSError object, and a nil NSDictionary object. The three verification related errors can be found in the `IDmeWebVerifyErrorCode` typedef, which deals with all errors in the SDK. The three verification related errors are as follows:
 
 - `IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile`
 	- Error occurs if user succesfully verified their group affiliation, but there was a problem with the user's profile being returned.
@@ -90,7 +90,7 @@ There are four potential outcomes during the group affiliation verification proc
 
 The following properties of the NSError object should be referenced by your app if you're looking to employ error-specific methods:
 
-- `code`: The error code of the specific issue. The value is defined in the `IDmeVerifyErrorCode` typedef, and should be in the 100s.
+- `code`: The error code of the specific issue. The value is defined in the `IDmeWebVerifyErrorCode` typedef, and should be in the 100s.
 -  `localizedDescription`: A detailed description of the error.
 
 ## Internet Connectivity
