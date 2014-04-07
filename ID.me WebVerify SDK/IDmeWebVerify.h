@@ -44,7 +44,17 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
     IDmeWebVerifyErrorCodeVerificationWasCanceledByUser
 };
 
-+ (instancetype)sharedInstance;
+/// THe ID.me WebVerify Singleton method
++ (IDmeWebVerify *)sharedInstance;
+
+/**
+ @param externalViewController The viewController which will present the modal navigationController
+ @param clientID The clientID provided by ID.me when registering the app at @b http://developer.sandbox.id.me or @b http://developer.www.id.me
+ @param redierectURI The redirectURI provided to ID.me when registering your app at @b http://developer.sandbox.id.me or @b http://developer.id.me
+ @param affiliationType The type of group verficiation that should be presented. Check the @c IDmeVerifyAffiliationType typedef for more details
+ @param sandboxMode While developing the app, set this value to YES. The test data values provided by ID.me will be accessible via the sandbox API routes. Before pushing your application live and setting this value to NO, make sure your app is first registered with ID.me's live/production server by filling out a request at @b http://developer.id.me
+ @param webVerificationResults A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an @c NSDictionary object as @c JSON data. If no data was returned, or an error occured, @c NSDictionary is @c nil and @c NSError returns an error code and localized description of the specific error that occured.
+ */
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                       withClientID:(NSString *)clientID
                        redirectURI:(NSString *)redirectURI

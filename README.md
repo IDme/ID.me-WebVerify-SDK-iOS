@@ -3,8 +3,15 @@ The ID.me WebVerify SDK for iOS is a library that allows you to verify a user's 
 
 ## Release Information
 
-- **SDK Version:** 2.0.0 (February 18, 2014)
+- **SDK Version:** 2.0.1 (April 7, 2014)
 - **Maintained By:** [Arthur Sabintsev](http://github.com/ArtSabintsev)
+
+For more information please email us at mobile@id.me or visit us at http://developer.id.me.
+
+## Changelog
+ - Minor refactoring
+ - Updated README
+
 
 ## Download
 
@@ -31,9 +38,9 @@ To launch the modal, the following method must be called in the view controller 
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                       withClientID:(NSString *)clientID
                        redirectURI:(NSString *)redirectURI
-                   affiliationType:(IDmeVerifyAffiliationType)affiliationType
+                   affiliationType:(IDmeWebVerifyAffiliationType)affiliationType
                      inSandboxMode:(BOOL)sandboxMode
-                       withResults:(IDmeVerifyVerificationResults)verificationResults;
+                       withResults:(IDmeVerifyWebVerifyResults)webVerificationResults;
 ```
 
 The params in that method are as follows:
@@ -43,9 +50,9 @@ The params in that method are as follows:
 - `redirectURI`: The redirectURI provided to ID.me when registering your app at [http://developer.sandbox.id.me](http://developer.sandbox.id.me) or [http://developer.id.me](http://developer.id.me)
 - `affiliationType`: The type of group verficiation that should be presented. Check the `IDmeVerifyAffiliationType` typedef for more details.
 - `sandboxMode`: While developing the app, set this value to YES. The test data values provided by ID.me will be accessible via the sandbox API routes. Before pushing your application live and setting this value to NO, make sure your app is first registered with ID.me's live/production server by filling out a request at [http://developer.id.me](http://developer.id.me).
-- `verificationResults`: A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an NSDictionary object as JSON data. If no data was returned, or an error occured, NSDictionary is nil and NSError returns an error code and localized description of the specific error that occured.
+- `webVerificationResults`: A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an NSDictionary object as JSON data. If no data was returned, or an error occured, NSDictionary is nil and NSError returns an error code and localized description of the specific error that occured.
 
-In your code, the implementation of this method should yield an expanded form of the `verificationResults` block. It is our recommendation that the full implementation of this method look as follows:
+In your code, the implementation of this method should yield an expanded form of the `webVerificationResults` block. It is our recommendation that the full implementation of this method look as follows:
 
 ```
 [[IDmeWebVerify sharedInstance] verifyUserInViewController:<your_presenting_view_controller>

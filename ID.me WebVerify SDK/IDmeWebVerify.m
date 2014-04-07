@@ -50,7 +50,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 @implementation IDmeWebVerify
 
 #pragma mark - Initialization Methods
-+ (instancetype)sharedInstance
++ (IDmeWebVerify *)sharedInstance
 {
     static id sharedInstance = nil;
     static dispatch_once_t onceToken;
@@ -61,7 +61,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 }
 
 
-- (instancetype)init
+- (id)init
 {
     self = [super init];
     if (self) {
@@ -79,7 +79,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
                     inSandboxMode:(BOOL)sandboxMode
                        withResults:(IDmeVerifyWebVerifyResults)webVerificationResults
 {
-//    [self clearWebViewCacheAndCookies];
+    [self clearWebViewCacheAndCookies];
     [self setClientID:clientID];
     [self setRedirectURI:redirectURI];
     [self setAffiliationType:affiliationType];
