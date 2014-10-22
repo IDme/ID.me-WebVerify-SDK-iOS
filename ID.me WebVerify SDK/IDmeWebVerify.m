@@ -9,17 +9,9 @@
 #import "IDmeWebVerify.h"
 #import "IDmeWebVerifyNavigationController.h"
 
-/// API Constants (Sandbox)
-#define IDME_VERIFY_GET_AUTH_URI_SANDBOX                @"https://api.sandbox.id.me/oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
-#define IDME_VERIFY_GET_USER_PROFILE_MILITARY_SANDBOX   @"https://api.sandbox.id.me/v2/military.json?access_token=%@"
-#define IDME_VERIFY_GET_USER_PROFILE_STUDENT_SANDBOX    @"https://api.sandbox.id.me/v2/student.json?access_token=%@"
-#define IDME_VERIFY_GET_USER_PROFILE_RESPONDER_SANDBOX  @"https://api.sandbox.id.me/v2/responder.json?access_token=%@"
-
 /// API Constants (Production)
-#define IDME_VERIFY_GET_AUTH_URI_LIVE                   @"https://api.id.me/oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
-#define IDME_VERIFY_GET_USER_PROFILE_MILITARY_LIVE      @"https://api.id.me/v2/military.json?access_token=%@"
-#define IDME_VERIFY_GET_USER_PROFILE_STUDENT_LIVE       @"https://api.id.me/v2/student.json?access_token=%@"
-#define IDME_VERIFY_GET_USER_PROFILE_RESPONDER_LIVE     @"https://api.id.me/v2/responder.json?access_token=%@"
+#define IDME_VERIFY_GET_AUTH_URI                        @"https://api.id.me/oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
+#define IDME_VERIFY_GET_USER_PROFILE                    @"https://api.id.me/api/public/v2/%@.json?access_token=%@"
 
 /// Data Constants
 #define IDME_VERIFY_ACCESS_TOKEN_PARAM                  @"access_token"
@@ -32,6 +24,7 @@
 /// Affiliation Scope Constants
 NSString *const kIDmeVerifyScopeMilitary                = @"military";
 NSString *const kIDmeVerifyScopeStudent                 = @"student";
+NSString *const kIDmeVerifyScopeTeacher                 = @"teacher";
 NSString *const kIDmeVerifyScopeResponder               = @"responder";
 
 @interface IDmeWebVerify () <UIWebViewDelegate>
@@ -40,7 +33,6 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 @property (nonatomic, copy) NSString *redirectURI;
 @property (nonatomic, copy) NSString *affiliationScope;
 @property (nonatomic, assign) IDmeWebVerifyAffiliationType affiliationType;
-@property (nonatomic, assign) BOOL sandboxMode;
 @property (nonatomic, strong) UIViewController *presentingViewController;
 @property (nonatomic, strong) IDmeWebVerifyNavigationController *webNavigationController;
 @property (nonatomic, strong) UIWebView *webView;
@@ -60,7 +52,6 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
     return sharedInstance;
 }
 
-
 - (id)init
 {
     self = [super init];
@@ -76,7 +67,6 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
                      withClientID:(NSString *)clientID
                       redirectURI:(NSString *)redirectURI
                   affiliationType:(IDmeWebVerifyAffiliationType)affiliationType
-                    inSandboxMode:(BOOL)sandboxMode
                        withResults:(IDmeVerifyWebVerifyResults)webVerificationResults
 {
     [self clearWebViewCacheAndCookies];
@@ -85,7 +75,6 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
     [self setAffiliationType:affiliationType];
     [self setScopeWithAffiliationType:affiliationType];
     [self setPresentingViewController:externalViewController];
-    [self setSandboxMode:sandboxMode];
     [self setWebVerificationResults:webVerificationResults];
     [self launchWebNavigationController];
 }
@@ -94,14 +83,14 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 - (void)launchWebNavigationController
 {
     // Initialize _webView
-    self.webView = [self createWebView];
+    _webView = [self createWebView];
     
     // Initialize _webNavigationController
     self.webNavigationController = [self createWebNavigationController];
     
     // Present _webNavigationController
     [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
-    [self.presentingViewController presentViewController:[self webNavigationController] animated:YES completion:^{
+    [self.presentingViewController presentViewController:_webNavigationController animated:YES completion:^{
         
         // GET Access Token via UIWebView flow
         [self loadWebViewWithAccessTokenRequestPage];
@@ -111,32 +100,16 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 
 - (void)loadWebViewWithAccessTokenRequestPage
 {
-    NSString *requestString = [NSString stringWithFormat:IDME_VERIFY_GET_AUTH_URI_LIVE, [self clientID], [self redirectURI], [self affiliationScope]];
-    if (YES == [self sandboxMode]) {
-        requestString = [NSString stringWithFormat:IDME_VERIFY_GET_AUTH_URI_SANDBOX, [self clientID], [self redirectURI], [self affiliationScope]];
-    }
+    NSString *requestString = [NSString stringWithFormat:IDME_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, _affiliationScope];
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
     NSURLRequest *request = [NSURLRequest requestWithURL:requestURL];
-    [self.webView loadRequest:request];
+    [_webView loadRequest:request];
 }
 
 - (void)getUserProfile:(NSString *)accessToken
 {
-    NSString *requestString;
-    switch ([self affiliationType]) {
-        case IDmeWebVerifyAffiliationTypeMilitary: {
-            requestString = ([self sandboxMode]) ? [NSString stringWithFormat:IDME_VERIFY_GET_USER_PROFILE_MILITARY_SANDBOX, accessToken] : [NSString stringWithFormat:IDME_VERIFY_GET_USER_PROFILE_MILITARY_LIVE, accessToken];
-        } break;
-            
-        case IDmeWebVerifyAffiliationTypeStudent: {
-            requestString = ([self sandboxMode]) ? [NSString stringWithFormat:IDME_VERIFY_GET_USER_PROFILE_STUDENT_SANDBOX, accessToken] : [NSString stringWithFormat:IDME_VERIFY_GET_USER_PROFILE_STUDENT_LIVE, accessToken];
-        } break;
-            
-        case IDmeWebVerifyAffiliationTypeResponder: {
-            requestString = ([self sandboxMode]) ? [NSString stringWithFormat:IDME_VERIFY_GET_USER_PROFILE_RESPONDER_SANDBOX, accessToken] : [NSString stringWithFormat:IDME_VERIFY_GET_USER_PROFILE_RESPONDER_LIVE, accessToken];
-        } break;
-    }
+    NSString *requestString = [NSString stringWithFormat:IDME_VERIFY_GET_USER_PROFILE, _affiliationScope, accessToken];
     
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
@@ -149,17 +122,17 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
         dispatch_async(dispatch_get_main_queue(), ^{
             NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
             NSUInteger statusCode = [httpResponse statusCode];
-            if ( [data length] ) {
+            if ([data length]) {
                 NSDictionary *results = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
                 NSDictionary *userProfile = [self testResultsForNull:results];
                 if (statusCode == 200) {
-                    self.webVerificationResults(userProfile, nil);
+                    _webVerificationResults(userProfile, nil);
                 }
             } else {
                 NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEBVERIFY_ERROR_DOMAIN
                                                                     code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
                                                                 userInfo:error.userInfo];
-                self.webVerificationResults(nil, modifiedError);
+                _webVerificationResults(nil, modifiedError);
             }
             
             // Dismiss _webViewController and clear _webView cache
@@ -186,10 +159,10 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 - (void)destroyWebView
 {
     if ( [self webView] ) {
-        [self.webView loadHTMLString:@"" baseURL:nil];
-        [self.webView stopLoading];
-        [self.webView setDelegate:nil];
-        [self.webView removeFromSuperview];
+        [_webView loadHTMLString:@"" baseURL:nil];
+        [_webView stopLoading];
+        [_webView setDelegate:nil];
+        [_webView removeFromSuperview];
         [self setWebView:nil];
     }
 }
@@ -214,7 +187,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 {
     // Initialize webViewController
     UIViewController *webViewController = [[UIViewController alloc] init];
-    [webViewController.view setFrame:[self.webView frame]];
+    [webViewController.view setFrame:[_webView frame]];
     [webViewController setTitle:@"Verify with ID.me"];
     [webViewController.view addSubview:[self webView]];
     
@@ -244,7 +217,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEBVERIFY_ERROR_DOMAIN
                                                     code:IDmeWebVerifyErrorCodeVerificationWasCanceledByUser
                                                 userInfo:details];
-        self.webVerificationResults(nil, error);
+        _webVerificationResults(nil, error);
     }
     
     [self.webNavigationController dismissViewControllerAnimated:YES completion:^{
@@ -324,7 +297,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
         errorDescription = [errorDescription stringByReplacingOccurrencesOfString:@"+" withString:@" "];
         NSDictionary *details = @{ NSLocalizedDescriptionKey : errorDescription };
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEBVERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
-        self.webVerificationResults(nil, error);
+        _webVerificationResults(nil, error);
         [self destroyWebNavigationController:self];
         
     }
@@ -332,6 +305,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
 {
+    NSLog(@"%@", request.URL.absoluteURL.absoluteString);
     return YES;
 }
 
@@ -354,15 +328,19 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 {
     switch ([self affiliationType]) {
         case IDmeWebVerifyAffiliationTypeMilitary: {
-            self.affiliationScope = kIDmeVerifyScopeMilitary;
+            _affiliationScope = kIDmeVerifyScopeMilitary;
         } break;
             
         case IDmeWebVerifyAffiliationTypeStudent: {
-            self.affiliationScope = kIDmeVerifyScopeStudent;
+            _affiliationScope = kIDmeVerifyScopeStudent;
+        } break;
+            
+        case IDmeWebVerifyAffiliationTypeTeacher: {
+            _affiliationScope = kIDmeVerifyScopeTeacher;
         } break;
             
         case IDmeWebVerifyAffiliationTypeResponder: {
-            self.affiliationScope = kIDmeVerifyScopeResponder;
+            _affiliationScope = kIDmeVerifyScopeResponder;
         } break;
     }
 }

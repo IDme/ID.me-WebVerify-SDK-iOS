@@ -17,14 +17,22 @@
 
 @implementation ViewController
 
+#pragma mark - View Lifecycle
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
     self.view.backgroundColor = [UIColor whiteColor];
     
+    [self setupSubviews];
+}
+
+#pragma mark - View Creation
+- (void)setupSubviews
+{
     // textView
     UITextView *textView = [UITextView new];
-    self.textView = textView;
+    _textView = textView;
     [textView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [textView setFont:[UIFont systemFontOfSize:15.0f]];
     [textView setEditable:NO];
@@ -39,42 +47,62 @@
     [button.layer setCornerRadius:5.0f];
     [self.view addSubview:button];
     
+    NSNumber *horizontalButtonPadding = @80;
+    NSNumber *verticalButtonSeparator = @20;
+    NSNumber *buttonHeight = @44;
+    NSNumber *textViewHeight = @250;
+    NSDictionary *metrics = NSDictionaryOfVariableBindings(horizontalButtonPadding, verticalButtonSeparator, buttonHeight, textViewHeight);
+    NSDictionary *views = NSDictionaryOfVariableBindings(textView, button);
+    
+    
     // constraints
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-80-[button]-80-|"
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-horizontalButtonPadding-[button]-horizontalButtonPadding-|"
                                                                       options:NSLayoutFormatAlignAllBaseline
-                                                                      metrics:nil
-                                                                        views:NSDictionaryOfVariableBindings(button)]];
+                                                                      metrics:metrics
+                                                                        views:views]];
     
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[textView]-|"
                                                                       options:NSLayoutFormatAlignAllBaseline
-                                                                      metrics:nil
-                                                                        views:NSDictionaryOfVariableBindings(textView)]];
+                                                                      metrics:metrics
+                                                                        views:views]];
     
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-20-[textView(250)]-20-[button(44)]"
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-verticalButtonSeparator-[textView(textViewHeight)]-verticalButtonSeparator-[button(buttonHeight)]"
                                                                       options:0
-                                                                      metrics:nil
-                                                                        views:NSDictionaryOfVariableBindings(textView, button)]];
+                                                                      metrics:metrics
+                                                                        views:views]];
 }
 
+#pragma mark - Actions
 - (void)verifyAction:(id)sender
 {
     // clear _textView
-    [self.textView setText:nil];
+    [_textView setText:nil];
     
     // Show AlertView
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Verify Affiliation"
                                                         message:@"Which affiliation would you like to verify?"
                                                        delegate:self cancelButtonTitle:@"Cancel"
-                                              otherButtonTitles:@"Military", @"Student", @"First Responder", nil];
+                                              otherButtonTitles:@"Military", @"Student", @"Teacher", @"First Responder", nil];
     [alertView setDelegate:self];
     [alertView setTag:1000];
     [alertView show];
 }
 
+- (void)resultsWithUserProfile:(NSDictionary *)userProfile andError:(NSError *)error
+{
+    if (error) { // Error
+        NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
+        _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
+    } else { // Verification was successful
+        NSLog(@"\nVerification Results:\n %@", userProfile);
+        _textView.text = [NSString stringWithFormat:@"%@", userProfile];
+    }
+}
+
 #pragma mark - UIAlertViewDelegate Methods
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-        
+    
     IDmeWebVerifyAffiliationType affiliationType = IDmeWebVerifyAffiliationTypeMilitary;
     switch (buttonIndex) {
         case 1: // Military
@@ -85,27 +113,24 @@
             affiliationType = IDmeWebVerifyAffiliationTypeStudent;
             break;
             
-        case 3: // First Responder
+        case 3: // Student
+            affiliationType = IDmeWebVerifyAffiliationTypeTeacher;
+            break;
+            
+        case 4: // First Responder
             affiliationType = IDmeWebVerifyAffiliationTypeResponder;
             break;
        }
     
     if (buttonIndex > 0) {
         
-        #warning The clientID and redirectURI should only be used in this sample project. Please obtain your own clientID and redirectURI from http://developer.sandbox.id.me
+        #warning The clientID and redirectURI in the method below should only be used in this sample project. Please obtain your own clientID at http://developer.id.me before shipping your project
         [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
-                                                      withClientID:@"be4da8f971329f362"
-                                                       redirectURI:@"https://developer.sandbox.id.me"
+                                                      withClientID:@"3d12ae3c4c426ed1148bdd0ded57b7e3"
+                                                       redirectURI:@"http://www.id.me"
                                                    affiliationType:affiliationType
-                                                     inSandboxMode:YES
                                                        withResults:^(NSDictionary *userProfile, NSError *error) {
-                                                           if (error) { // Error
-                                                               NSLog(@"Verification Error %d: %@", error.code, error.localizedDescription);
-                                                               self.textView.text = [NSString stringWithFormat:@"Error code: %d\n\n%@", error.code, error.localizedDescription];
-                                                           } else { // Verification was successful
-                                                               NSLog(@"\nVerification Results:\n %@", userProfile);
-                                                               self.textView.text = [NSString stringWithFormat:@"%@", userProfile];
-                                                           }
+                                                           [self resultsWithUserProfile:userProfile andError:error];
                                                        }];
     }
 }

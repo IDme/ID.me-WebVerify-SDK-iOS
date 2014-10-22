@@ -308,10 +308,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "WebVerifySample/WebVerifySample-Prefix.pch";
 				INFOPLIST_FILE = "WebVerifySample/WebVerifySample-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "6344153c-1490-4976-a063-9d1e5b1ecd7f";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -321,10 +323,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "WebVerifySample/WebVerifySample-Prefix.pch";
 				INFOPLIST_FILE = "WebVerifySample/WebVerifySample-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "6344153c-1490-4976-a063-9d1e5b1ecd7f";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
