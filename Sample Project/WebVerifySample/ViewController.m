@@ -127,7 +127,7 @@
         #warning The clientID and redirectURI in the method below should only be used in this sample project. Please obtain your own clientID at http://developer.id.me before shipping your project
         [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
                                                       withClientID:@"3d12ae3c4c426ed1148bdd0ded57b7e3"
-                                                       redirectURI:@"http://www.id.me"
+                                                       redirectURI:@"https://www.id.me"
                                                    affiliationType:affiliationType
                                                        withResults:^(NSDictionary *userProfile, NSError *error) {
                                                            [self resultsWithUserProfile:userProfile andError:error];
