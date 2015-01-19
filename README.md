@@ -45,7 +45,7 @@ To launch the modal, the following method must be called in the view controller 
 The params in that method are as follows:
 
 - `externalViewController`: The viewController which will present the modal navigationController.
-- `clientID`: The clientID provided by ID.me when registering the app at [http://developer.www.id.me](http://developer.www.id.me).
+- `clientID`: The clientID provided by ID.me when registering the app at [http://developer.id.me](http://developer.id.me).
 - `redirectURI`: The redirectURI provided to ID.me when registering your app at [http://developer.id.me](http://developer.id.me)
 - `affiliationType`: The type of group verficiation that should be presented. Check the `IDmeVerifyAffiliationType` typedef for more details.
 - `webVerificationResults`: A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an NSDictionary object as JSON data. If no data was returned, or an error occured, NSDictionary is nil and NSError returns an error code and localized description of the specific error that occured.
