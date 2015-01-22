@@ -10,22 +10,23 @@
 #import "IDmeWebVerifyNavigationController.h"
 
 /// API Constants (Production)
-#define IDME_VERIFY_GET_AUTH_URI                        @"https://api.id.me/oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
-#define IDME_VERIFY_GET_USER_PROFILE                    @"https://api.id.me/api/public/v2/%@.json?access_token=%@"
+#define IDME_WEB_VERIFY_GET_AUTH_URI                    @"https://api.id.me/oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
+#define IDME_WEB_VERIFY_GET_USER_PROFILE                @"https://api.id.me/api/public/v2/%@.json?access_token=%@"
 
 /// Data Constants
-#define IDME_VERIFY_ACCESS_TOKEN_PARAM                  @"access_token"
-#define IDME_VERIFY_ERROR_DESCRIPTION_PARAM             @"error_description"
+#define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
+#define IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM         @"error_description"
 
 /// Color Constants
-#define kIDmeVerifyColorGreen                           [UIColor colorWithRed:46.0f/255.0f green:147.0f/255.0f blue:125.0f/255.0f alpha:1.0f]
-#define kIDmeVerifyColorBlack                           [UIColor colorWithRed:234.0f/255.0f green:235.0f/255.0f blue:235.0f/255.0f alpha:1.0f]
+#define kIDmeWebVerifyColorGreen                        [UIColor colorWithRed:47.0f/255.0f green:192.0f/255.0f blue:115.0f/255.0f alpha:1.0f]
+#define kIDmeWebVerifyColorLightBlue                    [UIColor colorWithRed:56.0f/255.0f green:168.0f/255.0f blue:232.0f/255.0f alpha:1.0f]
+#define kIDmeWebVerifyColorDarkBlue                     [UIColor colorWithRed:46.0f/255.0f green:61.0f/255.0f blue:80.0f/255.0f alpha:1.0f]
 
 /// Affiliation Scope Constants
-NSString *const kIDmeVerifyScopeMilitary                = @"military";
-NSString *const kIDmeVerifyScopeStudent                 = @"student";
-NSString *const kIDmeVerifyScopeTeacher                 = @"teacher";
-NSString *const kIDmeVerifyScopeResponder               = @"responder";
+NSString *const kIDmeWebVerifyScopeMilitary             = @"military";
+NSString *const kIDmeWebVerifyScopeStudent              = @"student";
+NSString *const kIDmeWebVerifyScopeTeacher              = @"teacher";
+NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
 
 @interface IDmeWebVerify () <UIWebViewDelegate>
 @property (nonatomic, copy) IDmeVerifyWebVerifyResults webVerificationResults;
@@ -47,7 +48,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
     static id sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedInstance = [[self alloc] init];
+        sharedInstance = [self new];
     });
     return sharedInstance;
 }
@@ -86,11 +87,11 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
     _webView = [self createWebView];
     
     // Initialize _webNavigationController
-    self.webNavigationController = [self createWebNavigationController];
+    _webNavigationController = [self createWebNavigationController];
     
     // Present _webNavigationController
     [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
-    [self.presentingViewController presentViewController:_webNavigationController animated:YES completion:^{
+    [_presentingViewController presentViewController:_webNavigationController animated:YES completion:^{
         
         // GET Access Token via UIWebView flow
         [self loadWebViewWithAccessTokenRequestPage];
@@ -100,7 +101,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 
 - (void)loadWebViewWithAccessTokenRequestPage
 {
-    NSString *requestString = [NSString stringWithFormat:IDME_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, _affiliationScope];
+    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, _affiliationScope];
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
     NSURLRequest *request = [NSURLRequest requestWithURL:requestURL];
@@ -109,16 +110,15 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 
 - (void)getUserProfile:(NSString *)accessToken
 {
-    NSString *requestString = [NSString stringWithFormat:IDME_VERIFY_GET_USER_PROFILE, _affiliationScope, accessToken];
+    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_USER_PROFILE, _affiliationScope, accessToken];
     
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
-    [request setValue:@"iOSVerifySDK" forHTTPHeaderField:@"X-API-ORIGIN"];
-    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-    
-    // Perform asynchronous API request to fetch user profile data
-    [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+    [request setValue:@"IDmeWebVerify-SDK-iOS" forHTTPHeaderField:@"X-API-ORIGIN"];
+
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
             NSUInteger statusCode = [httpResponse statusCode];
@@ -129,7 +129,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
                     _webVerificationResults(userProfile, nil);
                 }
             } else {
-                NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEBVERIFY_ERROR_DOMAIN
+                NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
                                                                     code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
                                                                 userInfo:error.userInfo];
                 _webVerificationResults(nil, modifiedError);
@@ -138,13 +138,15 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
             // Dismiss _webViewController and clear _webView cache
             [self destroyWebNavigationController:self];
         });
+
     }];
+    [task resume];
 }
 
 #pragma mark - WebView Persistance Methods (Private)
 - (UIWebView *)createWebView
 {
-    CGRect parentViewControllerViewFrame = [self.presentingViewController.view frame];
+    CGRect parentViewControllerViewFrame = [_presentingViewController.view frame];
     CGRect webViewFrame = CGRectMake(0.0f,
                                      0.0f,
                                      parentViewControllerViewFrame.size.width,
@@ -158,7 +160,7 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 
 - (void)destroyWebView
 {
-    if ( [self webView] ) {
+    if (_webView) {
         [_webView loadHTMLString:@"" baseURL:nil];
         [_webView stopLoading];
         [_webView setDelegate:nil];
@@ -196,16 +198,17 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
                                                                             style:UIBarButtonItemStyleDone
                                                                            target:self
                                                                            action:@selector(destroyWebNavigationController:)];
-    NSDictionary *buttonAttributes = @{NSForegroundColorAttributeName : [UIColor blackColor]};
+    NSDictionary *buttonAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorLightBlue};
     [cancelBarButtonItem setTitleTextAttributes:buttonAttributes forState:UIControlStateNormal];
-    [cancelBarButtonItem setTintColor:kIDmeVerifyColorGreen];
+    [cancelBarButtonItem setTintColor:kIDmeWebVerifyColorGreen];
     [webViewController.navigationItem setLeftBarButtonItem:cancelBarButtonItem];
     
     // Initialize and customize UINavigationController with webViewController
     IDmeWebVerifyNavigationController *navigationController = [[IDmeWebVerifyNavigationController alloc] initWithRootViewController:webViewController];
-    NSDictionary *titleAttributes = @{NSForegroundColorAttributeName : kIDmeVerifyColorGreen};
+    NSDictionary *titleAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorGreen};
     [navigationController.navigationBar setTitleTextAttributes:titleAttributes];
-    [navigationController.navigationBar setTintColor:kIDmeVerifyColorBlack];
+    [navigationController.navigationBar setTintColor:kIDmeWebVerifyColorLightBlue];
+    [navigationController.navigationBar setBarTintColor:kIDmeWebVerifyColorDarkBlue];
     
     return navigationController;
 }
@@ -213,14 +216,14 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 - (void)destroyWebNavigationController:(id)sender
 {
     if ([sender isMemberOfClass:[UIBarButtonItem class]]) {
-        NSDictionary *details = @{ NSLocalizedDescriptionKey : IDME_WEBVERIFY_VERIFICATION_WAS_CANCELED };
-        NSError *error = [[NSError alloc] initWithDomain:IDME_WEBVERIFY_ERROR_DOMAIN
+        NSDictionary *details = @{ NSLocalizedDescriptionKey : IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED };
+        NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
                                                     code:IDmeWebVerifyErrorCodeVerificationWasCanceledByUser
                                                 userInfo:details];
         _webVerificationResults(nil, error);
     }
     
-    [self.webNavigationController dismissViewControllerAnimated:YES completion:^{
+    [_webNavigationController dismissViewControllerAnimated:YES completion:^{
         [self destroyWebView];
         [self clearWebViewCacheAndCookies];
         [self setWebNavigationController:nil];
@@ -284,19 +287,19 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
     }
     
     NSDictionary *parameters = [self parseQueryParametersFromURL:query];
-    if ([parameters objectForKey:IDME_VERIFY_ACCESS_TOKEN_PARAM]) {
+    if ([parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM]) {
         
         // Extract 'access_token' from URL query parameters that are separated by '&'
-        NSString *accessToken = [parameters objectForKey:IDME_VERIFY_ACCESS_TOKEN_PARAM];
+        NSString *accessToken = [parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
         [self getUserProfile:accessToken];
         
-    } else if ([parameters objectForKey:IDME_VERIFY_ERROR_DESCRIPTION_PARAM]) {
+    } else if ([parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM]) {
         
         // Extract 'error_description' from URL query parameters that are separated by '&'
-        NSString *errorDescription = [parameters objectForKey:IDME_VERIFY_ERROR_DESCRIPTION_PARAM];
+        NSString *errorDescription = [parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM];
         errorDescription = [errorDescription stringByReplacingOccurrencesOfString:@"+" withString:@" "];
         NSDictionary *details = @{ NSLocalizedDescriptionKey : errorDescription };
-        NSError *error = [[NSError alloc] initWithDomain:IDME_WEBVERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
+        NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
         _webVerificationResults(nil, error);
         [self destroyWebNavigationController:self];
         
@@ -305,7 +308,6 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
 {
-    NSLog(@"%@", request.URL.absoluteURL.absoluteString);
     return YES;
 }
 
@@ -326,21 +328,21 @@ NSString *const kIDmeVerifyScopeResponder               = @"responder";
 
 - (void)setScopeWithAffiliationType:(IDmeWebVerifyAffiliationType)affiliationType
 {
-    switch ([self affiliationType]) {
+    switch (_affiliationType) {
         case IDmeWebVerifyAffiliationTypeMilitary: {
-            _affiliationScope = kIDmeVerifyScopeMilitary;
+            _affiliationScope = kIDmeWebVerifyScopeMilitary;
         } break;
             
         case IDmeWebVerifyAffiliationTypeStudent: {
-            _affiliationScope = kIDmeVerifyScopeStudent;
+            _affiliationScope = kIDmeWebVerifyScopeStudent;
         } break;
             
         case IDmeWebVerifyAffiliationTypeTeacher: {
-            _affiliationScope = kIDmeVerifyScopeTeacher;
+            _affiliationScope = kIDmeWebVerifyScopeTeacher;
         } break;
             
         case IDmeWebVerifyAffiliationTypeResponder: {
-            _affiliationScope = kIDmeVerifyScopeResponder;
+            _affiliationScope = kIDmeWebVerifyScopeResponder;
         } break;
     }
 }

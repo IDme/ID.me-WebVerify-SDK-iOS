@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-#define IDME_WEBVERIFY_VERIFICATION_WAS_CANCELED    @"The user exited the modal navigationController before being verified."
-#define IDME_WEBVERIFY_ERROR_DOMAIN                 @"ID.me Web Verify Error Domain"
+#define IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED    @"The user exited the modal navigationController before being verified."
+#define IDME_WEB_VERIFY_ERROR_DOMAIN                 @"ID.me Web Verify Error Domain"
 
 @interface IDmeWebVerify : NSObject
 
