@@ -8,9 +8,8 @@ The ID.me WebVerify SDK for iOS is a library that allows you to verify a user's 
 
 For more information please email us at mobile@id.me or visit us at http://developer.id.me.
 
-## Changelog (3.1.0)
-- Replaced NSURLConnection with NSURLSession
-- Minor cleanup
+## Changelog (3.1.1)
+- Minor changes
 
 ## Note
 Once iOS 8 reaches critical mass, we will make use of `NSURLComponents` and `NSURLQueryItems`.
