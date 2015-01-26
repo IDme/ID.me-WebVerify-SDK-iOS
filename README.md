@@ -3,7 +3,7 @@ The ID.me WebVerify SDK for iOS is a library that allows you to verify a user's 
 
 ## Release Information
 
-- **SDK Version:** 3.1.0 (January 22, 2015)
+- **SDK Version:** 3.1.1 (January 22, 2015)
 - **Maintained By:** [Arthur Sabintsev](http://github.com/ArtSabintsev)
 
 For more information please email us at mobile@id.me or visit us at http://developer.id.me.
