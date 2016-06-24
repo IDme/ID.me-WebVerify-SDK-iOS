@@ -11,9 +11,6 @@ For more information please email us at mobile@id.me or visit us at http://devel
 ## Changelog (3.2.0)
 - Changed parameter from affiliationType to scope (NSString)
 
-## Note
-Once iOS 8 reaches critical mass, we will make use of `NSURLComponents` and `NSURLQueryItems`.
-
 ## Download
 
 Get it using CocoaPods
