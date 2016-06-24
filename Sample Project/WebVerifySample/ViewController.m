@@ -18,8 +18,7 @@
 @implementation ViewController
 
 #pragma mark - View Lifecycle
-- (void)viewDidLoad
-{
+- (void)viewDidLoad{
     [super viewDidLoad];
     
     self.view.backgroundColor = [UIColor whiteColor];
@@ -28,8 +27,7 @@
 }
 
 #pragma mark - View Creation
-- (void)setupSubviews
-{
+- (void)setupSubviews{
     // textView
     UITextView *textView = [UITextView new];
     _textView = textView;
@@ -37,7 +35,7 @@
     [textView setFont:[UIFont systemFontOfSize:15.0f]];
     [textView setEditable:NO];
     [self.view addSubview:textView];
-    
+
     // button
     UIButton *button = [UIButton new];
     [button setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -73,23 +71,24 @@
 }
 
 #pragma mark - Actions
-- (void)verifyAction:(id)sender
-{
+- (void)verifyAction:(id)sender{
     // clear _textView
     [_textView setText:nil];
-    
-    // Show AlertView
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Verify Affiliation"
-                                                        message:@"Which affiliation would you like to verify?"
-                                                       delegate:self cancelButtonTitle:@"Cancel"
-                                              otherButtonTitles:@"Military", @"Student", @"Teacher", @"First Responder", nil];
-    [alertView setDelegate:self];
-    [alertView setTag:1000];
-    [alertView show];
+
+    NSString *clientID    = @"<you_client_id>";
+    NSString *scope       = @"<your_handle>";
+    NSString *redirectURL = @"<your_url>";
+
+    [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
+                                    withClientID:clientID
+                                    redirectURI:redirectURL
+                                    scope:scope
+                                    withResults:^(NSDictionary *userProfile, NSError *error) {
+                                        [self resultsWithUserProfile:userProfile andError:error];
+                                    }];
 }
 
-- (void)resultsWithUserProfile:(NSDictionary *)userProfile andError:(NSError *)error
-{
+- (void)resultsWithUserProfile:(NSDictionary *)userProfile andError:(NSError *)error{
     if (error) { // Error
         NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
         _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
@@ -98,42 +97,5 @@
         _textView.text = [NSString stringWithFormat:@"%@", userProfile];
     }
 }
-
-#pragma mark - UIAlertViewDelegate Methods
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
-{
-    
-    IDmeWebVerifyAffiliationType affiliationType = IDmeWebVerifyAffiliationTypeMilitary;
-    switch (buttonIndex) {
-        case 1: // Military
-            affiliationType = IDmeWebVerifyAffiliationTypeMilitary;
-            break;
-            
-        case 2: // Student
-            affiliationType = IDmeWebVerifyAffiliationTypeStudent;
-            break;
-            
-        case 3: // Student
-            affiliationType = IDmeWebVerifyAffiliationTypeTeacher;
-            break;
-            
-        case 4: // First Responder
-            affiliationType = IDmeWebVerifyAffiliationTypeResponder;
-            break;
-       }
-    
-    if (buttonIndex > 0) {
-        
-        #warning The clientID and redirectURI in the method below should only be used in this sample project. Please obtain your own clientID at http://developer.id.me before shipping your project
-        [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
-                                                      withClientID:@""
-                                                       redirectURI:@""
-                                                   affiliationType:affiliationType
-                                                       withResults:^(NSDictionary *userProfile, NSError *error) {
-                                                           [self resultsWithUserProfile:userProfile andError:error];
-                                                       }];
-    }
-}
-
 
 @end
