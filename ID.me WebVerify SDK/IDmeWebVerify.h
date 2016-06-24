@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 #define IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED    @"The user exited the modal navigationController before being verified."
 #define IDME_WEB_VERIFY_ERROR_DOMAIN                 @"ID.me Web Verify Error Domain"
@@ -14,22 +15,6 @@
 @interface IDmeWebVerify : NSObject
 
 typedef void (^IDmeVerifyWebVerifyResults)(NSDictionary *userProfile, NSError *error);
-
-/// This typedef differentiates the different type of affiliation types that can be verified
-typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliationType)
-{
-    /// @b Military Verification
-    IDmeWebVerifyAffiliationTypeMilitary = 1,
-    
-    /// @b Student Verification
-    IDmeWebVerifyAffiliationTypeStudent,
-    
-    /// @b Teacher Verification
-    IDmeWebVerifyAffiliationTypeTeacher,
-    
-    /// @b First Respoder Verification
-    IDmeWebVerifyAffiliationTypeResponder
-};
 
 /// This typedef differentiates errors that may occur when authentication a user
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
@@ -60,7 +45,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                       withClientID:(NSString *)clientID
                        redirectURI:(NSString *)redirectURI
-                   affiliationType:(IDmeWebVerifyAffiliationType)affiliationType
+                             scope:(NSString *)scope
                        withResults:(IDmeVerifyWebVerifyResults)webVerificationResults;
 
 @end

@@ -22,18 +22,11 @@
 #define kIDmeWebVerifyColorLightBlue                    [UIColor colorWithRed:56.0f/255.0f green:168.0f/255.0f blue:232.0f/255.0f alpha:1.0f]
 #define kIDmeWebVerifyColorDarkBlue                     [UIColor colorWithRed:46.0f/255.0f green:61.0f/255.0f blue:80.0f/255.0f alpha:1.0f]
 
-/// Affiliation Scope Constants
-NSString *const kIDmeWebVerifyScopeMilitary             = @"military";
-NSString *const kIDmeWebVerifyScopeStudent              = @"student";
-NSString *const kIDmeWebVerifyScopeTeacher              = @"teacher";
-NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
-
 @interface IDmeWebVerify () <UIWebViewDelegate>
 @property (nonatomic, copy) IDmeVerifyWebVerifyResults webVerificationResults;
 @property (nonatomic, copy) NSString *clientID;
 @property (nonatomic, copy) NSString *redirectURI;
-@property (nonatomic, copy) NSString *affiliationScope;
-@property (nonatomic, assign) IDmeWebVerifyAffiliationType affiliationType;
+@property (nonatomic, copy) NSString *scope;
 @property (nonatomic, strong) UIViewController *presentingViewController;
 @property (nonatomic, strong) IDmeWebVerifyNavigationController *webNavigationController;
 @property (nonatomic, strong) UIWebView *webView;
@@ -43,8 +36,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
 @implementation IDmeWebVerify
 
 #pragma mark - Initialization Methods
-+ (IDmeWebVerify *)sharedInstance
-{
++ (IDmeWebVerify *)sharedInstance{
     static id sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -53,8 +45,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     return sharedInstance;
 }
 
-- (id)init
-{
+- (id)init{
     self = [super init];
     if (self) {
         [self clearWebViewCacheAndCookies];
@@ -67,22 +58,19 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                      withClientID:(NSString *)clientID
                       redirectURI:(NSString *)redirectURI
-                  affiliationType:(IDmeWebVerifyAffiliationType)affiliationType
-                       withResults:(IDmeVerifyWebVerifyResults)webVerificationResults
-{
+                            scope:(NSString *)scope
+                      withResults:(IDmeVerifyWebVerifyResults)webVerificationResults{
     [self clearWebViewCacheAndCookies];
     [self setClientID:clientID];
     [self setRedirectURI:redirectURI];
-    [self setAffiliationType:affiliationType];
-    [self setScopeWithAffiliationType:affiliationType];
+    [self setScope:scope];
     [self setPresentingViewController:externalViewController];
     [self setWebVerificationResults:webVerificationResults];
     [self launchWebNavigationController];
 }
 
 #pragma mark - Authorization Methods (Private)
-- (void)launchWebNavigationController
-{
+- (void)launchWebNavigationController{
     // Initialize _webView
     _webView = [self createWebView];
     
@@ -99,18 +87,17 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     }];
 }
 
-- (void)loadWebViewWithAccessTokenRequestPage
-{
-    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, _affiliationScope];
+- (void)loadWebViewWithAccessTokenRequestPage{
+    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, _scope];
+
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
     NSURLRequest *request = [NSURLRequest requestWithURL:requestURL];
     [_webView loadRequest:request];
 }
 
-- (void)getUserProfile:(NSString *)accessToken
-{
-    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_USER_PROFILE, _affiliationScope, accessToken];
+- (void)getUserProfile:(NSString *)accessToken{
+    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_USER_PROFILE, _scope, accessToken];
     
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
@@ -144,8 +131,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
 }
 
 #pragma mark - WebView Persistance Methods (Private)
-- (UIWebView *)createWebView
-{
+- (UIWebView *)createWebView{
     CGRect parentViewControllerViewFrame = [_presentingViewController.view frame];
     CGRect webViewFrame = CGRectMake(0.0f,
                                      0.0f,
@@ -158,8 +144,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     return webView;
 }
 
-- (void)destroyWebView
-{
+- (void)destroyWebView{
     if (_webView) {
         [_webView loadHTMLString:@"" baseURL:nil];
         [_webView stopLoading];
@@ -169,8 +154,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     }
 }
 
-- (void)clearWebViewCacheAndCookies
-{
+- (void)clearWebViewCacheAndCookies{
     // Clear Cache
     [[NSURLCache sharedURLCache] removeAllCachedResponses];
     [[NSURLCache sharedURLCache] setDiskCapacity:0];
@@ -185,8 +169,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     }
 }
 
-- (IDmeWebVerifyNavigationController *)createWebNavigationController
-{
+- (IDmeWebVerifyNavigationController *)createWebNavigationController{
     // Initialize webViewController
     UIViewController *webViewController = [[UIViewController alloc] init];
     [webViewController.view setFrame:[_webView frame]];
@@ -213,8 +196,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     return navigationController;
 }
 
-- (void)destroyWebNavigationController:(id)sender
-{
+- (void)destroyWebNavigationController:(id)sender{
     if ([sender isMemberOfClass:[UIBarButtonItem class]]) {
         NSDictionary *details = @{ NSLocalizedDescriptionKey : IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED };
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
@@ -231,8 +213,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
 }
 
 #pragma mark - Parsing Methods (Private)
-- (NSMutableDictionary *)parseQueryParametersFromURL:(NSString *)query;
-{
+- (NSMutableDictionary *)parseQueryParametersFromURL:(NSString *)query;{
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     
     NSArray *components = [query componentsSeparatedByString:@"&"];
@@ -248,8 +229,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     return parameters;
 }
 
-- (NSDictionary *)testResultsForNull:(NSDictionary *)results
-{
+- (NSDictionary *)testResultsForNull:(NSDictionary *)results{
     NSMutableDictionary *testDictionary = [NSMutableDictionary dictionaryWithDictionary:results];
     NSArray *keys = [testDictionary allKeys];
     for (id key in keys) {
@@ -262,17 +242,16 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
 }
 
 #pragma mark - UIWebViewDelegate Methods
-- (void)webViewDidStartLoad:(UIWebView *)webView
-{
+- (void)webViewDidStartLoad:(UIWebView *)webView{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
 }
 
-- (void)webViewDidFinishLoad:(UIWebView *)webView
-{
+- (void)webViewDidFinishLoad:(UIWebView *)webView{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     
     // Get string of current visible webpage
     NSString *query = [[webView.request.mainDocumentURL absoluteString] copy];
+
     if (query) {
         
         /*
@@ -287,6 +266,7 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     }
     
     NSDictionary *parameters = [self parseQueryParametersFromURL:query];
+
     if ([parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM]) {
         
         // Extract 'access_token' from URL query parameters that are separated by '&'
@@ -306,45 +286,20 @@ NSString *const kIDmeWebVerifyScopeResponder            = @"responder";
     }
 }
 
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
-{
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType{
     return YES;
 }
 
-- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error
-{
+- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error{
     NSLog(@"webView:didFailLoadWithError : %@", error);
 }
 
 #pragma mark - Accessor Methods
-- (NSString *)clientID
-{
+- (NSString *)clientID{
     if ( !_clientID ) {
         NSLog(@"You have not set your 'clientID'! Please set it using the startWithClientID: method.");
     }
     
     return (_clientID) ? _clientID : nil;
 }
-
-- (void)setScopeWithAffiliationType:(IDmeWebVerifyAffiliationType)affiliationType
-{
-    switch (_affiliationType) {
-        case IDmeWebVerifyAffiliationTypeMilitary: {
-            _affiliationScope = kIDmeWebVerifyScopeMilitary;
-        } break;
-            
-        case IDmeWebVerifyAffiliationTypeStudent: {
-            _affiliationScope = kIDmeWebVerifyScopeStudent;
-        } break;
-            
-        case IDmeWebVerifyAffiliationTypeTeacher: {
-            _affiliationScope = kIDmeWebVerifyScopeTeacher;
-        } break;
-            
-        case IDmeWebVerifyAffiliationTypeResponder: {
-            _affiliationScope = kIDmeWebVerifyScopeResponder;
-        } break;
-    }
-}
-
 @end
