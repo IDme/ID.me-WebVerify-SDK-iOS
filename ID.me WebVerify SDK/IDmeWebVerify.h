@@ -14,7 +14,7 @@
 
 @interface IDmeWebVerify : NSObject
 
-typedef void (^IDmeVerifyWebVerifyResults)(NSDictionary *userProfile, NSError *error);
+typedef void (^IDmeVerifyWebVerifyResults)(NSDictionary  * _Nullable userProfile, NSError  * _Nullable error);
 
 /// This typedef differentiates errors that may occur when authentication a user
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
@@ -33,7 +33,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
 };
 
 /// THe ID.me WebVerify Singleton method
-+ (IDmeWebVerify *)sharedInstance;
++ (IDmeWebVerify * _Nonnull)sharedInstance;
 
 /**
  @param externalViewController The viewController which will present the modal navigationController
@@ -42,10 +42,10 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
  @param affiliationType The type of group verficiation that should be presented. Check the @c IDmeVerifyAffiliationType typedef for more details
  @param webVerificationResults A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an @c NSDictionary object as @c JSON data. If no data was returned, or an error occured, @c NSDictionary is @c nil and @c NSError returns an error code and localized description of the specific error that occured.
  */
-- (void)verifyUserInViewController:(UIViewController *)externalViewController
-                      withClientID:(NSString *)clientID
-                       redirectURI:(NSString *)redirectURI
-                             scope:(NSString *)scope
-                       withResults:(IDmeVerifyWebVerifyResults)webVerificationResults;
+- (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
+                      withClientID:(NSString * _Nonnull)clientID
+                       redirectURI:(NSString * _Nonnull)redirectURI
+                             scope:(NSString * _Nonnull)scope
+                       withResults:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
 
 @end

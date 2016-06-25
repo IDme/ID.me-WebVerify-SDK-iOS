@@ -15,8 +15,7 @@
 @implementation IDmeWebVerifyNavigationController
 
 #pragma mark - Orientation Methods
-- (NSUInteger)supportedInterfaceOrientations
-{
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskPortrait;
 }
 

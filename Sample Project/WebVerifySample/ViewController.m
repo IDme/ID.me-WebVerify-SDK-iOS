@@ -10,24 +10,23 @@
 #import "IDmeWebVerify.h"
 
 @interface ViewController ()
-
 @property (nonatomic, strong) UITextView *textView;
-
 @end
 
 @implementation ViewController
 
 #pragma mark - View Lifecycle
-- (void)viewDidLoad{
+- (void)viewDidLoad {
     [super viewDidLoad];
-    
-    self.view.backgroundColor = [UIColor whiteColor];
-    
     [self setupSubviews];
 }
 
 #pragma mark - View Creation
-- (void)setupSubviews{
+- (void)setupSubviews {
+
+    // view
+    self.view.backgroundColor = [UIColor whiteColor];
+
     // textView
     UITextView *textView = [UITextView new];
     _textView = textView;
@@ -44,16 +43,15 @@
     [button addTarget:self action:@selector(verifyAction:) forControlEvents:UIControlEventTouchUpInside];
     [button.layer setCornerRadius:5.0f];
     [self.view addSubview:button];
-    
+
+    // constraints
     NSNumber *horizontalButtonPadding = @80;
     NSNumber *verticalButtonSeparator = @20;
     NSNumber *buttonHeight = @44;
     NSNumber *textViewHeight = @250;
     NSDictionary *metrics = NSDictionaryOfVariableBindings(horizontalButtonPadding, verticalButtonSeparator, buttonHeight, textViewHeight);
     NSDictionary *views = NSDictionaryOfVariableBindings(textView, button);
-    
-    
-    // constraints
+
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-horizontalButtonPadding-[button]-horizontalButtonPadding-|"
                                                                       options:NSLayoutFormatAlignAllBaseline
                                                                       metrics:metrics
@@ -71,7 +69,8 @@
 }
 
 #pragma mark - Actions
-- (void)verifyAction:(id)sender{
+- (void)verifyAction:(id)sender {
+
     // clear _textView
     [_textView setText:nil];
 
@@ -88,7 +87,8 @@
                                     }];
 }
 
-- (void)resultsWithUserProfile:(NSDictionary *)userProfile andError:(NSError *)error{
+- (void)resultsWithUserProfile:(NSDictionary *)userProfile andError:(NSError *)error {
+    
     if (error) { // Error
         NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
         _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
