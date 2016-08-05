@@ -57,6 +57,7 @@
     return self;
 }
 
+#pragma mark - Authorization Methods (Public)
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                      withClientID:(NSString *)clientID
                       redirectURI:(NSString *)redirectURI
@@ -70,7 +71,6 @@
                            withResult: webVerificationResults];
 }
 
-#pragma mark - Authorization Methods (Public)
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                       withClientID:(NSString *)clientID
                        redirectURI:(NSString *)redirectURI
@@ -83,7 +83,6 @@
                             loadUser: NO
                           withResult: webVerificationResults];
 }
-
 
 #pragma mark - Authorization Methods (Private)
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
@@ -101,7 +100,6 @@
     [self setWebVerificationResults:webVerificationResults];
     [self launchWebNavigationController];
 }
-
 
 - (void)launchWebNavigationController {
 

@@ -52,7 +52,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
  @param clientID The clientID provided by ID.me when registering the app at @b http://developer.id.me
  @param redierectURI The redirectURI provided to ID.me when registering your app at @b http://developer.id.me
  @param affiliationType The type of group verficiation that should be presented. Check the @c IDmeVerifyAffiliationType typedef for more details
- @param webVerificationResults A block that returns an NSString object or an NSError object.
+ @param webVerificationResults A block that returns an NSString object representing a valid access token or an NSError object.
  */
 
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
