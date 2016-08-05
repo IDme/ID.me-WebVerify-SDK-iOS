@@ -82,9 +82,26 @@
                                     withClientID:clientID
                                     redirectURI:redirectURL
                                     scope:scope
-                                    withResults:^(NSDictionary *userProfile, NSError *error) {
+                                    withResults:^(NSDictionary *userProfile, NSError *error, NSString *accessToken) {
                                         [self resultsWithUserProfile:userProfile andError:error];
                                     }];
+/*
+ OR
+    [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
+                                                  withClientID:clientID
+                                                   redirectURI:redirectURL
+                                                         scope:scope
+                                                   withTokenResult:^(NSDictionary *userProfile, NSError *error, NSString *accessToken) {
+ if (error) { // Error
+ NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
+ _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
+ } else { // Verification was successful
+ NSLog(@"\nVerification Token:\n %@", accessToken);
+ _textView.text = [NSString stringWithFormat:@"%@", accessToken];
+ }
+                                                   }];
+ */
+
 }
 
 - (void)resultsWithUserProfile:(NSDictionary *)userProfile andError:(NSError *)error {

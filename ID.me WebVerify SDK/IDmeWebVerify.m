@@ -31,6 +31,7 @@
 @property (nonatomic, strong) UIViewController *presentingViewController;
 @property (nonatomic, strong) IDmeWebVerifyNavigationController *webNavigationController;
 @property (nonatomic, strong) UIWebView *webView;
+@property Boolean loadUser;
 
 @end
 
@@ -62,7 +63,35 @@
                       redirectURI:(NSString *)redirectURI
                             scope:(NSString *)scope
                       withResults:(IDmeVerifyWebVerifyResults)webVerificationResults {
+     [self verifyUserInViewController: externalViewController
+                         withClientID: clientID
+                          redirectURI: redirectURI
+                                scope: scope
+                             loadUser: YES
+                           withResult: webVerificationResults];
+}
 
+- (void)verifyUserInViewController:(UIViewController *)externalViewController
+                      withClientID:(NSString *)clientID
+                       redirectURI:(NSString *)redirectURI
+                             scope:(NSString *)scope
+                   withTokenResult:(IDmeVerifyWebVerifyResults)webVerificationResults {
+    [self verifyUserInViewController: externalViewController
+                        withClientID: clientID
+                         redirectURI: redirectURI
+                               scope: scope
+                            loadUser: NO
+                          withResult: webVerificationResults];
+}
+
+#pragma mark - Authorization Methods (Private)
+- (void)verifyUserInViewController:(UIViewController *)externalViewController
+                      withClientID:(NSString *)clientID
+                       redirectURI:(NSString *)redirectURI
+                             scope:(NSString *)scope
+                          loadUser:(Boolean)loadUser
+                         withResult:(IDmeVerifyWebVerifyResults)webVerificationResults {
+    _loadUser = loadUser;
     [self clearWebViewCacheAndCookies];
     [self setClientID:clientID];
     [self setRedirectURI:redirectURI];
@@ -72,7 +101,6 @@
     [self launchWebNavigationController];
 }
 
-#pragma mark - Authorization Methods (Private)
 - (void)launchWebNavigationController {
 
     // Initialize _webView
@@ -118,13 +146,13 @@
                 NSDictionary *results = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
                 NSDictionary *userProfile = [self testResultsForNull:results];
                 if (statusCode == 200) {
-                    _webVerificationResults(userProfile, nil);
+                    _webVerificationResults(userProfile, nil, nil);
                 }
             } else {
                 NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
                                                                     code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
                                                                 userInfo:error.userInfo];
-                _webVerificationResults(nil, modifiedError);
+                _webVerificationResults(nil, modifiedError, nil);
             }
             
             // Dismiss _webViewController and clear _webView cache
@@ -209,7 +237,7 @@
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
                                                     code:IDmeWebVerifyErrorCodeVerificationWasCanceledByUser
                                                 userInfo:details];
-        _webVerificationResults(nil, error);
+        _webVerificationResults(nil, error, nil);
     }
     
     [_webNavigationController dismissViewControllerAnimated:YES completion:^{
@@ -278,7 +306,13 @@
         
         // Extract 'access_token' from URL query parameters that are separated by '&'
         NSString *accessToken = [parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
-        [self getUserProfile:accessToken];
+
+        if (_loadUser == YES)
+            [self getUserProfile:accessToken];
+        else {
+            _webVerificationResults(nil, nil, accessToken);
+            [self destroyWebNavigationController:self];
+        }
         
     } else if ([parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM]) {
         
@@ -287,7 +321,7 @@
         errorDescription = [errorDescription stringByReplacingOccurrencesOfString:@"+" withString:@" "];
         NSDictionary *details = @{ NSLocalizedDescriptionKey : errorDescription };
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
-        _webVerificationResults(nil, error);
+        _webVerificationResults(nil, error, nil);
         [self destroyWebNavigationController:self];
         
     }

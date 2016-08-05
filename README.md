@@ -30,7 +30,7 @@ or download it on Github.
 ## Execution
 Verification occurs through a modal view controller. The modal view controller is a navigation controller initialized with a web-view. The entire OAuth flow occurs through the web-view. Upon successful completion, the modal will automatically be dismissed, and a JSON object in the form of an NSDictionary object containing your user's verificaiton information will be returned to you.
 
-To launch the modal, the following method must be called in the view controller class that will be presenting the modal:
+To launch the modal, the following method can be called in the view controller class that will be presenting the modal:
 
 ```
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
@@ -55,27 +55,57 @@ In your code, the implementation of this method should yield an expanded form of
                                               withClientID:<your_clientID>
                                                redirectURI:<your_redirectURI>
                                                       code:<your_scope>
-                                               withResults:^(NSDictionary *userProfile, NSError *error) {
-                                                
-   											 	if (error) { // Error
-        
-        
-    											} else { // Verification was successful
-    											
+                                               withResults:^(NSDictionary *userProfile, NSError *error, NSString *token) {
+
+   											 	if (error) {
+                                                  // Error
+    											} else {
+    											  // Verification was successful and value will exist for userProfile
     											}
-    											
+
+                                            }];
+
+```
+
+Alternatively, in your code, you can request just the access token using
+
+```
+- (void)verifyUserInViewController:(UIViewController *)externalViewController
+                      withClientID:(NSString *)clientID
+                       redirectURI:(NSString *)redirectURI
+                             scope:(NSString *)scope
+                   withTokenResult:(IDmeVerifyWebVerifyResults)webVerificationResults;
+```
+
+
+
+```
+[[IDmeWebVerify sharedInstance] verifyUserInViewController:<your_presenting_view_controller>
+                                              withClientID:<your_clientID>
+                                               redirectURI:<your_redirectURI>
+                                                      code:<your_scope>
+                                           withTokenResult:^(NSDictionary *userProfile, NSError *error, NSString *token) {
+
+   											 	if (error) {
+                                                  // Error
+    											} else {
+    											  // Verification was successful and value will exist for token
+    											}
+
                                             }];
 
 ```
 
 ## Results
-Each successful request returns the following information:
+Each successful request for user profile returns the following information:
 
 - Group Affiliation (Military Veteran, Student, Firefighter, etc.)
 - Unique user Identifier
 - Verification Status
 
 **NOTE:** Other attributes (e.g., email, first name, last name, etc…) can be returned in the JSON results upon special request. Please email [mobile@id.me](mobile@id.me) if your app needs to gain access to more attributes. 
+
+Successful calls for the access token will return a valid token string.
 
 All potential errors that could occur are explained in the next section.
 
