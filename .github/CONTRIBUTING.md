@@ -14,6 +14,7 @@ This document provides general guidelines about how to contribute to the project
   * Please include the following information to help maintainers to fix the problem faster:
     * Xcode version you are using.
     * iOS version you are targeting.
+    * ID.me-WebVerify-SDK-iOS version used.
     * Full Xcode console output of stack trace or code compilation error.
     * Any other additional detail you think it would be useful to understand and solve the problem.
 
@@ -30,7 +31,7 @@ The easiest way to start contributing is searching open issues by `help wanted` 
 
 ###### Suggested git workflow to contribute
 
-1. Fork the XLProductName repository.
+1. Fork the ID.me-WebVerify-SDK-iOS repository.
 2. Clone your forked project into your developer machine: `git clone git@github.com:<your-github-username>/ID.me-WebVerify-SDK-iOS.git`
 3. Add the original project repo as upstream repository in your forked project: `git remote add upstream git@github.com:IDme/ID.me-WebVerify-SDK-iOS.git`
 4. Before starting a new feature make sure your forked master branch is synchronized upstream master branch. Considering you do not mere your pull request into master you can run: `git checkout master` and then `git pull upstream master`. Optionally `git push origin master`.
@@ -44,7 +45,7 @@ The easiest way to start contributing is searching open issues by `help wanted` 
 
 ###### Code style and conventions
 
-We try to follow our [swift style guide](https://github.com/github/objective-c-style-guide). Following it is not strictly necessary to contribute and to have a pull request accepted but project maintainers try to follow it.
+We try to follow GitHub's [Objective-C style guide](https://github.com/github/objective-c-style-guide). Following it is not strictly necessary to contribute and to have a pull request accepted but project maintainers try to follow it.
 
 
 ### Feature proposal
