@@ -339,17 +339,6 @@
     return parameters;
 }
 
-- (NSDictionary * _Nonnull)testResultsForNull:(NSDictionary * _Nonnull)results{
-    NSMutableDictionary *testDictionary = [NSMutableDictionary dictionaryWithDictionary:results];
-    NSArray *keys = [testDictionary allKeys];
-    for (id key in keys) {
-        if ([testDictionary valueForKey:key] == [NSNull null]) {
-            [testDictionary setValue:@"Unknown" forKey:key];
-        }
-    }
-    
-    return [NSDictionary dictionaryWithDictionary:testDictionary];
-}
 
 #pragma mark - UIWebViewDelegate Methods
 -(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation{
