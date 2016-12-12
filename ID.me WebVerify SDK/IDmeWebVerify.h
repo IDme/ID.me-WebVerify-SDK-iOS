@@ -35,30 +35,48 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
 + (IDmeWebVerify * _Nonnull)sharedInstance;
 
 /**
- @param externalViewController The viewController which will present the modal navigationController
  @param clientID The clientID provided by ID.me when registering the app at @b http://developer.id.me
  @param redierectURI The redirectURI provided to ID.me when registering your app at @b http://developer.id.me
- @param affiliationType The type of group verficiation that should be presented. Check the @c IDmeVerifyAffiliationType typedef for more details
+ */
++ (void)initializeWithClientID:(NSString * _Nonnull)clientID
+                   redirectURI:(NSString * _Nonnull)redirectURI;
+
+/**
+ @param externalViewController The viewController which will present the modal navigationController
+ @param scope The type of group verficiation that should be presented.
  @param webVerificationResults A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an @c NSDictionary object as @c JSON data. If no data was returned, or an error occured, @c NSDictionary is @c nil and @c NSError returns an error code and localized description of the specific error that occured.
  */
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
-                      withClientID:(NSString * _Nonnull)clientID
-                       redirectURI:(NSString * _Nonnull)redirectURI
                              scope:(NSString * _Nonnull)scope
                        withResults:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
 
 /**
  @param externalViewController The viewController which will present the modal navigationController
- @param clientID The clientID provided by ID.me when registering the app at @b http://developer.id.me
- @param redierectURI The redirectURI provided to ID.me when registering your app at @b http://developer.id.me
- @param affiliationType The type of group verficiation that should be presented. Check the @c IDmeVerifyAffiliationType typedef for more details
+ @param scope The type of group verficiation that should be presented.
  @param webVerificationResults A block that returns an NSString object representing a valid access token or an NSError object.
  */
 
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
-                      withClientID:(NSString * _Nonnull)clientID
-                       redirectURI:(NSString * _Nonnull)redirectURI
                              scope:(NSString * _Nonnull)scope
                    withTokenResult:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
+
+/**
+ Returns the User profile with the stored access token. 
+ @param webVerificationResults A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an @c NSDictionary object as @c JSON data. If no data was returned, or an error occured, @c NSDictionary is @c nil and @c NSError returns an error code and localized description of the specific error that occured.
+ */
+- (void)getUserProfileWithResult:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
+
+/**
+ Returns a valid access token. If the currently saved access token is valid it will be returned. If not, then it will be refreshed.
+ @param scope The type of group verficiation that should be presented.
+ @param forceRefreshing Force the SDK to refresh the token and do not use the current one.
+ @param callback A block that returns an NSString object representing a valid access token or an NSError object.
+ */
+- (void)getAccessTokenWithScope:(NSString*)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyResults _Nonnull)callback;
+
+/**
+ Invalidates and deletes all tokens stored by the SDK.
+ */
+- (void)logout;
 
 @end

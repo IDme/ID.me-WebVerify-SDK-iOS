@@ -9,4 +9,5 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.author       = { "Arthur Ariel Sabintsev" => "arthur@sabintsev.com" }
   s.license      = 'MIT'
+  s.dependency 'SAMKeychain', '~> 1.5'
 end
