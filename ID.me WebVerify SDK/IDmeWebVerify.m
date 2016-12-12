@@ -324,6 +324,9 @@
             _webVerificationResults(nil, nil, accessToken);
             [self destroyWebNavigationController:self];
         }
+
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
         
     } else if ([parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM]) {
         
@@ -334,7 +337,9 @@
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
         _webVerificationResults(nil, error, nil);
         [self destroyWebNavigationController:self];
-        
+
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
     }
 
     decisionHandler(WKNavigationActionPolicyAllow);
