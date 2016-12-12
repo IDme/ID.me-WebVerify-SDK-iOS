@@ -40,18 +40,15 @@
 }
 
 -(void)persist{
-    NSString *errorString;
+    NSError* error;
     NSDictionary* dictionary =  @{IDME_EXPIRATION_DATE: [_dateFormatter stringFromDate:self.expirationDate] ?: @"",
                                   IDME_REFRESH_TOKEN: _refreshToken,
                                   IDME_ACCESS_TOKEN: _accessToken,
                                   IDME_SCOPE: _scope,
                                   };
-    NSData *dictionaryRep = [NSPropertyListSerialization dataFromPropertyList:dictionary format:NSPropertyListXMLFormat_v1_0 errorDescription:&errorString];
-
-    NSError* error;
+    NSData *dictionaryRep = [NSPropertyListSerialization dataWithPropertyList:dictionary format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
     [SAMKeychain setPasswordData:dictionaryRep forService:[NSBundle mainBundle].bundleIdentifier account:IDME_KEYCHAIN_DATA_ACCOUNT error:&error];
-    NSLog(@"%@", error);
-
+    
 }
 
 -(void)clean {
@@ -63,9 +60,9 @@
 }
 
 -(void)loadFromKeychain{
-    NSString *error;
+    NSError *error;
     NSData* data = [SAMKeychain passwordDataForService:[NSBundle mainBundle].bundleIdentifier account:IDME_KEYCHAIN_DATA_ACCOUNT];
-    NSDictionary *dictionary = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:NSPropertyListImmutable format:nil errorDescription:&error];
+    NSDictionary *dictionary = [NSPropertyListSerialization propertyListWithData:data options:NSPropertyListImmutable format:nil error:&error];
     self.accessToken = dictionary[IDME_ACCESS_TOKEN];
     self.refreshToken = dictionary[IDME_REFRESH_TOKEN];
     self.scope = dictionary[IDME_SCOPE];

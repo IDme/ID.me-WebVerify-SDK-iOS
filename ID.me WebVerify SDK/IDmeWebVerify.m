@@ -17,7 +17,7 @@
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
-#define IDME_WEB_VERIFY_EXPIRATION_PARAM              @"expires_in"
+#define IDME_WEB_VERIFY_EXPIRATION_PARAM                @"expires_in"
 #define IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM         @"error_description"
 
 /// Color Constants
@@ -54,14 +54,15 @@
 - (id)init{
     self = [super init];
     if (self) {
-        self.keychainData = [[IDmeWebVerifyKeychainData alloc] init];
+        _keychainData = [[IDmeWebVerifyKeychainData alloc] init];
         [self clearWebViewCacheAndCookies];
     }
     
     return self;
 }
 
-+ (void)initializeWithClientID:(NSString *)clientID redirectURI:(NSString *)redirectURI {
++ (void)initializeWithClientID:(NSString * _Nonnull)clientID redirectURI:(NSString * _Nonnull)redirectURI {
+    NSAssert([IDmeWebVerify sharedInstance].clientID == nil, @"You cannot initialize IDmeWebVerify more than once.");
     [[IDmeWebVerify sharedInstance] setClientID:clientID];
     [[IDmeWebVerify sharedInstance] setRedirectURI:redirectURI];
 }
@@ -118,12 +119,20 @@
                 NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
                 NSUInteger statusCode = [httpResponse statusCode];
                 if ([data length]) {
-                    NSDictionary *results = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
-                    NSDictionary *userProfile = [self testResultsForNull:results];
-                    if (statusCode == 200) {
-                        webVerificationResults(userProfile, nil, nil);
-                    } else if (statusCode == 401) {
-                        //TODO: refresh token
+                    NSError* error;
+                    NSDictionary *results = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+                    if (error == nil) {
+                        NSDictionary *userProfile = [self testResultsForNull:results];
+                        if (statusCode == 200) {
+                            webVerificationResults(userProfile, nil, nil);
+                        } else if (statusCode == 401) {
+                            //TODO: refresh token
+                        }
+                    } else {
+                        NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
+                                                                            code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
+                                                                        userInfo:error.userInfo];
+                        webVerificationResults(nil, modifiedError, nil);
                     }
                 } else {
                     NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
@@ -147,15 +156,18 @@
     [self.keychainData clean];
 }
 
-- (void)getAccessTokenWithScope:(NSString*)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyResults)callback{
+- (void)getAccessTokenWithScope:(NSString* _Nonnull)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyResults _Nonnull)callback;{
     if (force) {
         // TODO: refresh token
         callback(nil, nil, nil);
         return;
-    } else if (![scope isEqualToString:self.keychainData.scope]) {
+    }
+
+    if (![scope isEqualToString:self.keychainData.scope]) {
         [self logout];
         [self verifyUserInViewController:[self topMostController] scope:scope withTokenResult:callback];
     }
+
     NSString* token = self.keychainData.accessToken;
     if (token) {
         NSDate* expiration = self.keychainData.expirationDate;
@@ -351,7 +363,6 @@
     if ([parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM]) {
 
         // Extract 'access_token' from URL query parameters that are separated by '&'
-        NSLog(@"%@", query);
         NSString *accessToken = [parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
         NSString *expiresIn = [parameters objectForKey:IDME_WEB_VERIFY_EXPIRATION_PARAM];
 
@@ -397,7 +408,7 @@
 }
 
 #pragma mark - Helpers
-- (void)setExpirationDateWith:(NSNumber*)seconds{
+- (void)setExpirationDateWith:(NSNumber* _Nonnull)seconds{
     self.keychainData.expirationDate = [NSDate dateWithTimeIntervalSinceNow:[seconds doubleValue]];
 }
 
