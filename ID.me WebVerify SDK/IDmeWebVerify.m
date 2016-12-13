@@ -8,6 +8,7 @@
 
 #import "IDmeWebVerify.h"
 #import "IDmeWebVerifyNavigationController.h"
+#import <WebKit/WebKit.h>
 
 /// API Constants (Production)
 #define IDME_WEB_VERIFY_GET_AUTH_URI                    @"https://api.id.me/oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
@@ -22,7 +23,7 @@
 #define kIDmeWebVerifyColorLightBlue                    [UIColor colorWithRed:56.0f/255.0f green:168.0f/255.0f blue:232.0f/255.0f alpha:1.0f]
 #define kIDmeWebVerifyColorDarkBlue                     [UIColor colorWithRed:46.0f/255.0f green:61.0f/255.0f blue:80.0f/255.0f alpha:1.0f]
 
-@interface IDmeWebVerify () <UIWebViewDelegate>
+@interface IDmeWebVerify () <WKNavigationDelegate>
 
 @property (nonatomic, copy) IDmeVerifyWebVerifyResults webVerificationResults;
 @property (nonatomic, copy) NSString *clientID;
@@ -30,7 +31,7 @@
 @property (nonatomic, copy) NSString *scope;
 @property (nonatomic, strong) UIViewController *presentingViewController;
 @property (nonatomic, strong) IDmeWebVerifyNavigationController *webNavigationController;
-@property (nonatomic, strong) UIWebView *webView;
+@property (nonatomic, strong) WKWebView *webView;
 @property Boolean loadUser;
 
 @end
@@ -164,16 +165,16 @@
 }
 
 #pragma mark - WebView Persistance Methods (Private)
-- (UIWebView * _Nonnull)createWebView {
+- (WKWebView * _Nonnull)createWebView {
     CGRect parentViewControllerViewFrame = [_presentingViewController.view frame];
     CGRect webViewFrame = CGRectMake(0.0f,
                                      0.0f,
                                      parentViewControllerViewFrame.size.width,
                                      parentViewControllerViewFrame.size.height);
-    UIWebView *webView = [[UIWebView alloc] initWithFrame:webViewFrame];
-    webView.delegate = self;
-    webView.scalesPageToFit = YES;
-    
+    WKWebView *webView = [[WKWebView alloc] initWithFrame:webViewFrame];
+    webView.navigationDelegate = self;
+    webView.allowsBackForwardNavigationGestures = YES;
+
     return webView;
 }
 
@@ -182,7 +183,7 @@
     if (_webView) {
         [_webView loadHTMLString:@"" baseURL:nil];
         [_webView stopLoading];
-        [_webView setDelegate:nil];
+        [_webView setNavigationDelegate:nil];
         [_webView removeFromSuperview];
         [self setWebView:nil];
     }
@@ -239,7 +240,8 @@
                                                 userInfo:details];
         _webVerificationResults(nil, error, nil);
     }
-    
+
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     [_webNavigationController dismissViewControllerAnimated:YES completion:^{
         [self destroyWebView];
         [self clearWebViewCacheAndCookies];
@@ -277,15 +279,24 @@
 }
 
 #pragma mark - UIWebViewDelegate Methods
-- (void)webViewDidStartLoad:(UIWebView *)webView{
+-(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation{
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+}
+
+-(void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error{
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+}
+
+-(void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error{
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+}
+
+-(void)webView:(WKWebView *)webView didCommitNavigation:(WKNavigation *)navigation{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
 }
 
-- (void)webViewDidFinishLoad:(UIWebView *)webView{
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-    
-    // Get string of current visible webpage
-    NSString *query = [[webView.request.mainDocumentURL absoluteString] copy];
+-(void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler{
+    NSString *query = [[navigationAction.request.mainDocumentURL absoluteString] copy];
 
     if (query) {
         
@@ -299,7 +310,7 @@
         query = [query stringByReplacingOccurrencesOfString:@"#" withString:@"&"];
         
     }
-    
+
     NSDictionary *parameters = [self parseQueryParametersFromURL:query];
 
     if ([parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM]) {
@@ -313,6 +324,9 @@
             _webVerificationResults(nil, nil, accessToken);
             [self destroyWebNavigationController:self];
         }
+
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
         
     } else if ([parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM]) {
         
@@ -323,16 +337,12 @@
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
         _webVerificationResults(nil, error, nil);
         [self destroyWebNavigationController:self];
-        
+
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
     }
-}
 
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType{
-    return YES;
-}
-
-- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error{
-    NSLog(@"webView:didFailLoadWithError : %@", error);
+    decisionHandler(WKNavigationActionPolicyAllow);
 }
 
 #pragma mark - Accessor Methods
