@@ -13,7 +13,7 @@
 
 /// API Constants (Production)
 #define IDME_WEB_VERIFY_GET_AUTH_URI                    @"https://api.id.me/oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
-#define IDME_WEB_VERIFY_GET_USER_PROFILE                @"https://api.id.me/api/public/v2/%@.json?access_token=%@"
+#define IDME_WEB_VERIFY_GET_USER_PROFILE                @"https://api.id.me/api/public/v2/data.json?access_token=%@"
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
@@ -38,7 +38,9 @@
 
 @end
 
-@implementation IDmeWebVerify
+@implementation IDmeWebVerify {
+    NSString* requestScope;
+}
 
 #pragma mark - Initialization Methods
 + (IDmeWebVerify *)sharedInstance {
@@ -95,60 +97,72 @@
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
     _loadUser = loadUser;
     [self clearWebViewCacheAndCookies];
-    self.keychainData.scope = scope;
+    requestScope = scope;
     [self setPresentingViewController:externalViewController];
     [self setWebVerificationResults:webVerificationResults];
     [self launchWebNavigationController];
 }
 
 #pragma mark - Other public functions
-- (void)getUserProfileWithResult:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults; {
-    [self getAccessTokenWithScope:self.keychainData.scope
+- (void)getUserProfileWithScope:(NSString* _Nullable)scope andResult:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults {
+    [self getAccessTokenWithScope:scope
                   forceRefreshing:NO
                            result:^(NSDictionary * _Nullable userProfile, NSError * _Nullable error, NSString * _Nullable accessToken) {
-        NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_USER_PROFILE, self.keychainData.scope, accessToken];
 
-        requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-        NSURL *requestURL = [NSURL URLWithString:requestString];
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
-        [request setValue:@"IDmeWebVerify-SDK-iOS" forHTTPHeaderField:@"X-API-ORIGIN"];
+                                if (!accessToken) {
+                                    NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
+                                                                                code:IDmeWebVerifyErrorCodeNoSuchScope
+                                                                            userInfo:nil];
+                                    webVerificationResults(nil, error, nil);
+                                    // Dismiss _webViewController and clear _webView cache
+                                    if (self.webNavigationController) {
+                                        [self destroyWebNavigationController:self];
+                                    }
+                                    return;
+                                }
+                                NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_USER_PROFILE, accessToken];
 
-        NSURLSession *session = [NSURLSession sharedSession];
-        NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
-                NSUInteger statusCode = [httpResponse statusCode];
-                if ([data length]) {
-                    NSError* error;
-                    NSDictionary *results = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
-                    if (error == nil) {
-                        NSDictionary *userProfile = [self testResultsForNull:results];
-                        if (statusCode == 200) {
-                            webVerificationResults(userProfile, nil, nil);
-                        } else if (statusCode == 401) {
-                            //TODO: refresh token
-                        }
-                    } else {
-                        NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
-                                                                            code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
-                                                                        userInfo:error.userInfo];
-                        webVerificationResults(nil, modifiedError, nil);
-                    }
-                } else {
-                    NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
-                                                                        code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
-                                                                    userInfo:error.userInfo];
-                    webVerificationResults(nil, modifiedError, nil);
-                }
+                                requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+                                NSURL *requestURL = [NSURL URLWithString:requestString];
+                                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
+                                [request setValue:@"IDmeWebVerify-SDK-iOS" forHTTPHeaderField:@"X-API-ORIGIN"];
 
-                // Dismiss _webViewController and clear _webView cache
-                if (self.webNavigationController) {
-                    [self destroyWebNavigationController:self];
-                }
-            });
-            
-        }];
-        [task resume];
+                                NSURLSession *session = [NSURLSession sharedSession];
+                                NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                                    dispatch_async(dispatch_get_main_queue(), ^{
+                                        NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+                                        NSUInteger statusCode = [httpResponse statusCode];
+                                        if ([data length]) {
+                                            NSError* error;
+                                            NSDictionary *results = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+                                            if (error == nil) {
+                                                NSDictionary *userProfile = [self testResultsForNull:results];
+                                                if (statusCode == 200) {
+                                                    webVerificationResults(userProfile, nil, nil);
+                                                } else if (statusCode == 401) {
+                                                    //TODO: refresh token
+                                                }
+                                            } else {
+                                                NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
+                                                                                                    code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
+                                                                                                userInfo:error.userInfo];
+                                                webVerificationResults(nil, modifiedError, nil);
+                                            }
+                                        } else {
+                                            NSError *modifiedError = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
+                                                                                                code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
+                                                                                            userInfo:error.userInfo];
+                                            webVerificationResults(nil, modifiedError, nil);
+                                        }
+
+                                        // Dismiss _webViewController and clear _webView cache
+                                        if (self.webNavigationController) {
+                                            [self destroyWebNavigationController:self];
+                                        }
+                                    });
+                                    
+                                }];
+                                [task resume];
     }];
 }
 
@@ -156,30 +170,53 @@
     [self.keychainData clean];
 }
 
-- (void)getAccessTokenWithScope:(NSString* _Nonnull)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyResults _Nonnull)callback;{
+- (void)getAccessTokenWithScope:(NSString* _Nullable)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyResults _Nonnull)callback{
+
     if (force) {
         // TODO: refresh token
         callback(nil, nil, nil);
         return;
     }
 
-    if (![scope isEqualToString:self.keychainData.scope]) {
-        [self logout];
-        [self verifyUserInViewController:[self topMostController] scope:scope withTokenResult:callback];
+    NSString* token;
+    NSDate* expiration;
+    if (scope) {
+        // get the token for the specified scope
+        token = [self.keychainData accessTokenForScope:scope];
+        expiration = [self.keychainData expirationDateForScope:scope];
+
+    } else {
+        // get last used token
+        NSString* latestScope = [self.keychainData getLatestUsedScope];
+
+        if (!latestScope) {
+            // no token has been requested yet
+            callback(nil, nil, nil);
+            return;
+        }
+
+        token = [self.keychainData accessTokenForScope:latestScope];
+        expiration = [self.keychainData expirationDateForScope:latestScope];
     }
 
-    NSString* token = self.keychainData.accessToken;
     if (token) {
-        NSDate* expiration = self.keychainData.expirationDate;
+        // check if token has expired
         NSDate* now = [[NSDate alloc] init];
         if ([now compare:expiration] != NSOrderedAscending) {
             // TODO: refresh token
             callback(nil, nil, nil);
-            return;
+        } else {
+            callback(nil, nil, token);
         }
+    } else {
+        // invalid scope passed as argument. There is no token for this scope
+        NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
+                                                    code:IDmeWebVerifyErrorCodeNoSuchScope
+                                                userInfo:nil];
+        callback(nil, error, nil);
     }
 
-    callback(nil, nil, token);
+
 }
 
 #pragma mark - Web view Methods
@@ -203,7 +240,7 @@
 }
 
 - (void)loadWebViewWithAccessTokenRequestPage {
-    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, self.keychainData.scope];
+    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, requestScope];
 
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
@@ -367,12 +404,12 @@
         NSString *expiresIn = [parameters objectForKey:IDME_WEB_VERIFY_EXPIRATION_PARAM];
 
 
-        self.keychainData.accessToken = accessToken;
-        [self setExpirationDateWith:[NSNumber numberWithInt:[expiresIn intValue]]];
         //TODO: save refresh token
-        [self.keychainData persist];
+        NSDate* expirationDate = [NSDate dateWithTimeIntervalSinceNow:[[NSNumber numberWithInt:[expiresIn intValue]] doubleValue]];
+        [self.keychainData setToken:accessToken expirationDate:expirationDate refreshToken:nil forScope:requestScope];
+
         if (_loadUser == YES)
-            [self getUserProfileWithResult:_webVerificationResults];
+            [self getUserProfileWithScope:requestScope andResult:_webVerificationResults];
         else {
             _webVerificationResults(nil, nil, accessToken);
             [self destroyWebNavigationController:self];
@@ -400,27 +437,7 @@
 
 #pragma mark - Accessor Methods
 - (NSString * _Nullable)clientID{
-    if ( !_clientID ) {
-        NSLog(@"You have not set your 'clientID'! Please set it using the startWithClientID: method.");
-    }
-    
     return (_clientID) ? _clientID : nil;
-}
-
-#pragma mark - Helpers
-- (void)setExpirationDateWith:(NSNumber* _Nonnull)seconds{
-    self.keychainData.expirationDate = [NSDate dateWithTimeIntervalSinceNow:[seconds doubleValue]];
-}
-
-- (UIViewController*) topMostController
-{
-    UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
-
-    while (topController.presentedViewController) {
-        topController = topController.presentedViewController;
-    }
-    
-    return topController;
 }
 
 @end

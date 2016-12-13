@@ -28,7 +28,10 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
     IDmeWebVerifyErrorCodeVerificationWasDeniedByUser,
     
     /// Error occurs if user exits modal navigation controller before OAuth flow could complete.
-    IDmeWebVerifyErrorCodeVerificationWasCanceledByUser
+    IDmeWebVerifyErrorCodeVerificationWasCanceledByUser,
+
+    /// Error occurs if getUserProfileWithScope:andResult: or getAccessTokenWithScope:forceRefreshing:result: are called with a scope that has no access token associated.
+    IDmeWebVerifyErrorCodeNoSuchScope
 };
 
 /// THe ID.me WebVerify Singleton method
@@ -61,17 +64,18 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
 
 /**
  Returns the User profile with the stored access token. 
+ @param scope The type of token to be used. If nil then the last token will be used
  @param webVerificationResults A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an @c NSDictionary object as @c JSON data. If no data was returned, or an error occured, @c NSDictionary is @c nil and @c NSError returns an error code and localized description of the specific error that occured.
  */
-- (void)getUserProfileWithResult:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
+- (void)getUserProfileWithScope:(NSString* _Nullable)scope andResult:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
 
 /**
  Returns a valid access token. If the currently saved access token is valid it will be returned. If not, then it will be refreshed.
- @param scope The type of group verification that should be presented.
+ @param scope The type of token to be used. If nil then the last token will be used
  @param forceRefreshing Force the SDK to refresh the token and do not use the current one.
  @param callback A block that returns an NSString object representing a valid access token or an NSError object.
  */
-- (void)getAccessTokenWithScope:(NSString* _Nonnull)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyResults _Nonnull)callback;
+- (void)getAccessTokenWithScope:(NSString* _Nullable)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyResults _Nonnull)callback;
 
 /**
  Invalidates and deletes all tokens stored by the SDK.

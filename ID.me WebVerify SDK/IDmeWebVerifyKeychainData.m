@@ -17,22 +17,20 @@
 #define IDME_SCOPE                              @"IDME_SCOPE"
 
 @interface IDmeWebVerifyKeychainData ()
-
+@property (strong, nonatomic) NSString* latestScope;
+@property (nonatomic, strong) NSMutableDictionary *tokensByScope;
 @end
 
 @implementation IDmeWebVerifyKeychainData {
     NSDateFormatter* _dateFormatter;
 }
 
-@synthesize scope = _scope;
-@synthesize refreshToken = _refreshToken;
-@synthesize accessToken = _accessToken;
-
 - (id)init{
     self = [super init];
     if (self) {
         _dateFormatter = [[NSDateFormatter alloc] init];
         _dateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZZZZZ";
+        _tokensByScope = [[NSMutableDictionary alloc] init];
         [self loadFromKeychain];
     }
 
@@ -41,58 +39,58 @@
 
 -(void)persist{
     NSError* error;
-    NSDictionary* dictionary =  @{IDME_EXPIRATION_DATE: [_dateFormatter stringFromDate:self.expirationDate] ?: @"",
-                                  IDME_REFRESH_TOKEN: _refreshToken,
-                                  IDME_ACCESS_TOKEN: _accessToken,
-                                  IDME_SCOPE: _scope,
-                                  };
-    NSData *dictionaryRep = [NSPropertyListSerialization dataWithPropertyList:dictionary format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
+    NSData *dictionaryRep = [NSPropertyListSerialization dataWithPropertyList:[self tokensByScope] format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
     [SAMKeychain setPasswordData:dictionaryRep forService:[NSBundle mainBundle].bundleIdentifier account:IDME_KEYCHAIN_DATA_ACCOUNT error:&error];
-    
 }
 
 -(void)clean {
     [SAMKeychain deletePasswordForService:[NSBundle mainBundle].bundleIdentifier account:IDME_KEYCHAIN_DATA_ACCOUNT];
-    self.accessToken = nil;
-    self.refreshToken = nil;
-    self.scope = nil;
-    self.expirationDate = nil;
+    [self.tokensByScope removeAllObjects];
 }
 
 -(void)loadFromKeychain{
     NSError *error;
     NSData* data = [SAMKeychain passwordDataForService:[NSBundle mainBundle].bundleIdentifier account:IDME_KEYCHAIN_DATA_ACCOUNT];
-    NSDictionary *dictionary = [NSPropertyListSerialization propertyListWithData:data options:NSPropertyListImmutable format:nil error:&error];
-    self.accessToken = dictionary[IDME_ACCESS_TOKEN];
-    self.refreshToken = dictionary[IDME_REFRESH_TOKEN];
-    self.scope = dictionary[IDME_SCOPE];
-    self.expirationDate = [_dateFormatter dateFromString:dictionary[IDME_EXPIRATION_DATE]];
+    if (data) {
+        NSDictionary *dictionary = [NSPropertyListSerialization propertyListWithData:data
+                                                                             options:NSPropertyListMutableContainersAndLeaves
+                                                                              format:nil
+                                                                               error:&error];
+        self.tokensByScope = [NSMutableDictionary dictionaryWithDictionary:dictionary];
+    }
 }
 
 #pragma mark Getters and Setters
 
--(NSString *)scope{
-    return [_scope  isEqual: @""] ? nil : _scope;
+-(void)setToken:(NSString * _Nonnull)accessToken expirationDate:(NSDate * _Nonnull)date
+   refreshToken:(NSString * _Nullable)refreshToken forScope:(NSString * _Nonnull)scope {
+
+    NSString* refresh = refreshToken;
+    if (!refreshToken && self.tokensByScope[scope]) {
+        refresh = self.tokensByScope[scope][IDME_REFRESH_TOKEN];
+    }
+
+    self.tokensByScope[scope] = @{IDME_EXPIRATION_DATE: [_dateFormatter stringFromDate: date],
+                                  IDME_REFRESH_TOKEN: refresh ?: @"",
+                                  IDME_ACCESS_TOKEN: accessToken};
+    self.latestScope = scope;
+    [self persist];
 }
 
--(void)setScope:(NSString *)scope{
-    _scope = scope ?: @"";
+-(NSString * _Nullable)getLatestUsedScope {
+    return self.latestScope;
 }
 
--(NSString *)accessToken{
-    return [_accessToken  isEqual: @""] ? nil : _accessToken;
+-(NSString * _Nullable)accessTokenForScope:(NSString * _Nonnull)scope {
+    return self.tokensByScope[scope][IDME_ACCESS_TOKEN];
 }
 
--(void)setAccessToken:(NSString *)accessToken{
-    _accessToken = accessToken ?: @"";
+-(NSString * _Nullable)refreshTokenForScope:(NSString * _Nonnull)scope {
+    return self.tokensByScope[scope][IDME_REFRESH_TOKEN];
 }
 
--(NSString *)refreshToken{
-    return [_refreshToken  isEqual: @""] ? nil : _refreshToken;
-}
-
--(void)setRefreshToken:(NSString *)refreshToken{
-    _refreshToken = refreshToken ?: @"";
+-(NSDate * _Nullable)expirationDateForScope:(NSString * _Nonnull)scope{
+    return  [_dateFormatter dateFromString: self.tokensByScope[scope][IDME_EXPIRATION_DATE]];
 }
 
 @end

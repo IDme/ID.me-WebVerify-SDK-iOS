@@ -13,12 +13,14 @@
 
 @interface IDmeWebVerifyKeychainData : NSObject
 
-@property (nonatomic, strong) NSString *accessToken;
-@property (nonatomic, strong) NSString *refreshToken;
-@property (nonatomic, strong) NSDate *expirationDate;
-@property (nonatomic, strong) NSString *scope;
+-(NSString* _Nullable)getLatestUsedScope;
+-(NSString* _Nullable)accessTokenForScope:(NSString* _Nonnull)scope;
+-(NSDate* _Nullable)expirationDateForScope:(NSString* _Nonnull)scope;
+-(NSString* _Nullable)refreshTokenForScope:(NSString* _Nonnull)scope;
 
--(void)persist;
+-(void)setToken:(NSString * _Nonnull)accessToken expirationDate:(NSDate * _Nonnull)date
+   refreshToken:(NSString * _Nullable)refreshToken forScope:(NSString * _Nonnull)scope;
+
 -(void)clean;
 
 @end
