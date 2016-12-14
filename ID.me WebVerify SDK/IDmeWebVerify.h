@@ -13,7 +13,8 @@
 
 @interface IDmeWebVerify : NSObject
 
-typedef void (^IDmeVerifyWebVerifyResults)(NSDictionary  * _Nullable userProfile, NSError  * _Nullable error, NSString *  _Nullable accessToken);
+typedef void (^IDmeVerifyWebVerifyProfileResults)(NSDictionary  * _Nullable userProfile, NSError  * _Nullable error);
+typedef void (^IDmeVerifyWebVerifyTokenResults)(NSString *  _Nullable accessToken, NSError  * _Nullable error);
 
 /// This typedef differentiates errors that may occur when authentication a user
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
@@ -30,7 +31,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
     /// Error occurs if user exits modal navigation controller before OAuth flow could complete.
     IDmeWebVerifyErrorCodeVerificationWasCanceledByUser,
 
-    /// Error occurs if getUserProfileWithScope:andResult: or getAccessTokenWithScope:forceRefreshing:result: are called with a scope that has no access token associated.
+    /// Error occurs if getUserProfileWithScope:result: or getAccessTokenWithScope:forceRefreshing:result: are called with a scope that has no access token associated.
     IDmeWebVerifyErrorCodeNoSuchScope
 };
 
@@ -50,7 +51,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
  */
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
                              scope:(NSString * _Nonnull)scope
-                       withResults:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
+                       withResults:(IDmeVerifyWebVerifyProfileResults _Nonnull)webVerificationResults;
 
 /**
  @param externalViewController The viewController which will present the modal navigationController
@@ -60,14 +61,14 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
 
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
                              scope:(NSString * _Nonnull)scope
-                   withTokenResult:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
+                   withTokenResult:(IDmeVerifyWebVerifyTokenResults _Nonnull)webVerificationResults;
 
 /**
  Returns the User profile with the stored access token. 
  @param scope The type of token to be used. If nil then the last token will be used
  @param webVerificationResults A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an @c NSDictionary object as @c JSON data. If no data was returned, or an error occured, @c NSDictionary is @c nil and @c NSError returns an error code and localized description of the specific error that occured.
  */
-- (void)getUserProfileWithScope:(NSString* _Nullable)scope andResult:(IDmeVerifyWebVerifyResults _Nonnull)webVerificationResults;
+- (void)getUserProfileWithScope:(NSString* _Nullable)scope result:(IDmeVerifyWebVerifyProfileResults _Nonnull)webVerificationResults;
 
 /**
  Returns a valid access token. If the currently saved access token is valid it will be returned. If not, then it will be refreshed.
@@ -75,7 +76,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
  @param forceRefreshing Force the SDK to refresh the token and do not use the current one.
  @param callback A block that returns an NSString object representing a valid access token or an NSError object.
  */
-- (void)getAccessTokenWithScope:(NSString* _Nullable)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyResults _Nonnull)callback;
+- (void)getAccessTokenWithScope:(NSString* _Nullable)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback;
 
 /**
  Invalidates and deletes all tokens stored by the SDK.

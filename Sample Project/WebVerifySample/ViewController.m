@@ -96,7 +96,7 @@
 
     [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
                                     scope:scope
-                                    withResults:^(NSDictionary *userProfile, NSError *error, NSString *accessToken) {
+                                    withResults:^(NSDictionary *userProfile, NSError *error) {
                                         [self resultsWithUserProfile:userProfile andError:error];
                                     }];
 /*
@@ -119,12 +119,12 @@
 }
 
 - (void)tokenTestAction:(id)sender {
-    [[IDmeWebVerify sharedInstance] getUserProfileWithResult:^(NSDictionary *userProfile, NSError *error, NSString *accessToken) {
+    [[IDmeWebVerify sharedInstance] getUserProfileWithScope: @"wallet" result:^(NSDictionary *userProfile, NSError *error) {
         [self resultsWithUserProfile:userProfile andError:error];
         _textView.text = [_textView.text stringByAppendingString:@"\nUpdated with saved token"];
     }];
-    [[IDmeWebVerify sharedInstance] getAccessTokenWithScope:@"wallet" forceRefreshing:NO result:^(NSDictionary * _Nullable userProfile, NSError * _Nullable error, NSString * _Nullable accessToken) {
-        NSLog(@"%@", accessToken);
+    [[IDmeWebVerify sharedInstance] getAccessTokenWithScope:@"wallet" forceRefreshing:NO result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
+        NSLog(@"token: %@", accessToken);
     }];
 }
 

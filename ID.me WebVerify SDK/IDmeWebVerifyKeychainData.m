@@ -57,6 +57,16 @@
                                                                               format:nil
                                                                                error:&error];
         self.tokensByScope = [NSMutableDictionary dictionaryWithDictionary:dictionary];
+        __block NSDate* mostRecentDate = [NSDate dateWithTimeIntervalSince1970:0];
+        __block NSString* scope = nil;
+        [self.tokensByScope enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+            NSDate* date = [_dateFormatter dateFromString:obj[IDME_EXPIRATION_DATE]];
+            if ([date compare:mostRecentDate] == NSOrderedDescending) {
+                mostRecentDate = date;
+                scope = key;
+            }
+        }];
+        self.latestScope = scope;
     }
 }
 

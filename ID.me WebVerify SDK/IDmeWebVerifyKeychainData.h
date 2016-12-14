@@ -18,8 +18,11 @@
 -(NSDate* _Nullable)expirationDateForScope:(NSString* _Nonnull)scope;
 -(NSString* _Nullable)refreshTokenForScope:(NSString* _Nonnull)scope;
 
--(void)setToken:(NSString * _Nonnull)accessToken expirationDate:(NSDate * _Nonnull)date
-   refreshToken:(NSString * _Nullable)refreshToken forScope:(NSString * _Nonnull)scope;
+// TODO: discuss if refreshToken should be nullable
+-(void)setToken:(NSString * _Nonnull)accessToken
+ expirationDate:(NSDate * _Nonnull)date
+   refreshToken:(NSString * _Nullable)refreshToken
+       forScope:(NSString * _Nonnull)scope;
 
 -(void)clean;
 
