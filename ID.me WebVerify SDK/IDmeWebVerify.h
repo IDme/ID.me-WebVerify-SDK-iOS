@@ -32,7 +32,13 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
     IDmeWebVerifyErrorCodeVerificationWasCanceledByUser,
 
     /// Error occurs if getUserProfileWithScope:result: or getAccessTokenWithScope:forceRefreshing:result: are called with a scope that has no access token associated.
-    IDmeWebVerifyErrorCodeNoSuchScope
+    IDmeWebVerifyErrorCodeNoSuchScope,
+
+    /// Error thrown when there is no valid token or when a response status code is 401.
+    IDmeWebVerifyErrorCodeNotAuthorized,
+
+    /// Error thrown for not implemented features like token refreshing.
+    IDmeWebVerifyErrorCodeNotImplemented
 };
 
 /// THe ID.me WebVerify Singleton method

@@ -108,7 +108,7 @@
                            result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
 
                                 if (!accessToken) {
-                                    webVerificationResults(nil, [self noSuchScopeErrorWithUserInfo:nil]);
+                                    webVerificationResults(nil, error);
                                     // Dismiss _webViewController and clear _webView cache
                                     if (self.webNavigationController) {
                                         [self destroyWebNavigationController:self];
@@ -138,7 +138,7 @@
                                             }
                                         } else if (statusCode == 401) {
                                             // TODO: refresh token
-                                            webVerificationResults(nil, nil);
+                                            webVerificationResults(nil, [self notAuthorizedErrorWithUserInfo:nil]);
                                         } else {
                                             webVerificationResults(nil, [self failedFetchingProfileErrorWithUserInfo:error.userInfo]);
                                         }
@@ -162,7 +162,7 @@
 
     if (force) {
         // TODO: refresh token
-        callback(nil, nil);
+        callback(nil, [self notImplementedErrorWithUserInfo:nil]);
         return;
     }
 
@@ -192,7 +192,7 @@
         NSDate* now = [[NSDate alloc] init];
         if ([now compare:expiration] != NSOrderedAscending) {
             // TODO: refresh token
-            callback(nil, nil);
+            callback(nil, [self notAuthorizedErrorWithUserInfo:nil]);
         } else {
             callback(token, nil);
         }
@@ -435,14 +435,24 @@
 
 #pragma mark - Helpers - Errors
 - (NSError * _Nonnull)noSuchScopeErrorWithUserInfo:(NSDictionary* _Nullable)userInfo {
-    return [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
-                                      code:IDmeWebVerifyErrorCodeNoSuchScope
-                                  userInfo:userInfo];
+    return [self errorWithCode:IDmeWebVerifyErrorCodeNoSuchScope userInfo:userInfo];
 }
 
 - (NSError * _Nonnull)failedFetchingProfileErrorWithUserInfo:(NSDictionary* _Nullable)userInfo {
+    return [self errorWithCode:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile userInfo:userInfo];
+}
+
+- (NSError * _Nonnull)notImplementedErrorWithUserInfo:(NSDictionary* _Nullable)userInfo {
+    return [self errorWithCode:IDmeWebVerifyErrorCodeNotImplemented userInfo:userInfo];
+}
+
+- (NSError * _Nonnull)notAuthorizedErrorWithUserInfo:(NSDictionary* _Nullable)userInfo {
+    return [self errorWithCode:IDmeWebVerifyErrorCodeNotAuthorized userInfo:userInfo];
+}
+
+- (NSError * _Nonnull)errorWithCode:(IDmeWebVerifyErrorCode)code  userInfo:(NSDictionary* _Nullable)userInfo {
     return [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
-                                      code:IDmeWebVerifyErrorCodeVerificationDidFailToFetchUserProfile
+                                      code:code
                                   userInfo:userInfo];
 }
 

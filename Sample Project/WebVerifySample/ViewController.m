@@ -13,13 +13,18 @@
 @property (nonatomic, strong) UITextView *textView;
 @end
 
-@implementation ViewController
+@implementation ViewController {
+    NSString *clientID;
+    NSString *redirectURL;
+    NSString *scope;
+}
 
 #pragma mark - View Lifecycle
 - (void)viewDidLoad {
 
-    NSString *clientID    = @"<you_client_id>";
-    NSString *redirectURL = @"<your_url>";
+    clientID    = @"<your_client_id>";
+    redirectURL = @"<your_url>";
+    scope = @"<your_handle>";
 
     [super viewDidLoad];
     [IDmeWebVerify initializeWithClientID:clientID redirectURI:redirectURL];
@@ -92,8 +97,6 @@
     // clear _textView
     [_textView setText:nil];
 
-    NSString *scope       = @"<your_handle>";
-
     [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
                                     scope:scope
                                     withResults:^(NSDictionary *userProfile, NSError *error) {
@@ -119,11 +122,11 @@
 }
 
 - (void)tokenTestAction:(id)sender {
-    [[IDmeWebVerify sharedInstance] getUserProfileWithScope: @"wallet" result:^(NSDictionary *userProfile, NSError *error) {
+    [[IDmeWebVerify sharedInstance] getUserProfileWithScope: scope result:^(NSDictionary *userProfile, NSError *error) {
         [self resultsWithUserProfile:userProfile andError:error];
         _textView.text = [_textView.text stringByAppendingString:@"\nUpdated with saved token"];
     }];
-    [[IDmeWebVerify sharedInstance] getAccessTokenWithScope:@"wallet" forceRefreshing:NO result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
+    [[IDmeWebVerify sharedInstance] getAccessTokenWithScope:scope forceRefreshing:NO result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
         NSLog(@"token: %@", accessToken);
     }];
 }
