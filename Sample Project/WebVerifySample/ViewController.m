@@ -13,11 +13,21 @@
 @property (nonatomic, strong) UITextView *textView;
 @end
 
-@implementation ViewController
+@implementation ViewController {
+    NSString *clientID;
+    NSString *redirectURL;
+    NSString *scope;
+}
 
 #pragma mark - View Lifecycle
 - (void)viewDidLoad {
+
+    clientID    = @"<your_client_id>";
+    redirectURL = @"<your_url>";
+    scope = @"<your_handle>";
+
     [super viewDidLoad];
+    [IDmeWebVerify initializeWithClientID:clientID redirectURI:redirectURL];
     [self setupSubviews];
 }
 
@@ -44,15 +54,28 @@
     [button.layer setCornerRadius:5.0f];
     [self.view addSubview:button];
 
+    UIButton *tokenButton = [UIButton new];
+    [tokenButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [tokenButton setTitle:@"Test token!" forState:UIControlStateNormal];
+    [tokenButton setBackgroundColor:[UIColor lightGrayColor]];
+    [tokenButton addTarget:self action:@selector(tokenTestAction:) forControlEvents:UIControlEventTouchUpInside];
+    [tokenButton.layer setCornerRadius:5.0f];
+    [self.view addSubview:tokenButton];
+
     // constraints
     NSNumber *horizontalButtonPadding = @80;
     NSNumber *verticalButtonSeparator = @20;
     NSNumber *buttonHeight = @44;
     NSNumber *textViewHeight = @250;
     NSDictionary *metrics = NSDictionaryOfVariableBindings(horizontalButtonPadding, verticalButtonSeparator, buttonHeight, textViewHeight);
-    NSDictionary *views = NSDictionaryOfVariableBindings(textView, button);
+    NSDictionary *views = NSDictionaryOfVariableBindings(textView, button, tokenButton);
 
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-horizontalButtonPadding-[button]-horizontalButtonPadding-|"
+                                                                      options:NSLayoutFormatAlignAllBaseline
+                                                                      metrics:metrics
+                                                                        views:views]];
+
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-horizontalButtonPadding-[tokenButton]-horizontalButtonPadding-|"
                                                                       options:NSLayoutFormatAlignAllBaseline
                                                                       metrics:metrics
                                                                         views:views]];
@@ -62,7 +85,7 @@
                                                                       metrics:metrics
                                                                         views:views]];
     
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-verticalButtonSeparator-[textView(textViewHeight)]-verticalButtonSeparator-[button(buttonHeight)]"
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-verticalButtonSeparator-[textView(textViewHeight)]-verticalButtonSeparator-[button(buttonHeight)]-verticalButtonSeparator-[tokenButton(buttonHeight)]"
                                                                       options:0
                                                                       metrics:metrics
                                                                         views:views]];
@@ -74,15 +97,9 @@
     // clear _textView
     [_textView setText:nil];
 
-    NSString *clientID    = @"<you_client_id>";
-    NSString *scope       = @"<your_handle>";
-    NSString *redirectURL = @"<your_url>";
-
     [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
-                                    withClientID:clientID
-                                    redirectURI:redirectURL
                                     scope:scope
-                                    withResults:^(NSDictionary *userProfile, NSError *error, NSString *accessToken) {
+                                    withResults:^(NSDictionary *userProfile, NSError *error) {
                                         [self resultsWithUserProfile:userProfile andError:error];
                                     }];
 /*
@@ -102,6 +119,16 @@
                                                    }];
  */
 
+}
+
+- (void)tokenTestAction:(id)sender {
+    [[IDmeWebVerify sharedInstance] getUserProfileWithScope: scope result:^(NSDictionary *userProfile, NSError *error) {
+        [self resultsWithUserProfile:userProfile andError:error];
+        _textView.text = [_textView.text stringByAppendingString:@"\nUpdated with saved token"];
+    }];
+    [[IDmeWebVerify sharedInstance] getAccessTokenWithScope:scope forceRefreshing:NO result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
+        NSLog(@"token: %@", accessToken);
+    }];
 }
 
 - (void)resultsWithUserProfile:(NSDictionary *)userProfile andError:(NSError *)error {
