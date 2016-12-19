@@ -128,11 +128,11 @@
                                         NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
                                         NSUInteger statusCode = [httpResponse statusCode];
                                         if ([data length] && error == nil && statusCode == 200) {
-                                            NSError* error;
-                                            NSDictionary *results = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
-                                            if (error == nil) {
-                                                NSDictionary *userProfile = [self testResultsForNull:results];
-                                                    webVerificationResults(userProfile, nil);
+                                            NSError* serializingError;
+                                            NSMutableDictionary *results = (NSMutableDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments | NSJSONReadingMutableContainers error:&serializingError];
+                                            [self removeNull:results];
+                                            if (serializingError == nil) {
+                                                    webVerificationResults(results, nil);
                                             } else {
                                                 webVerificationResults(nil, [self failedFetchingProfileErrorWithUserInfo:error.userInfo]);
                                             }
@@ -339,16 +339,13 @@
     return parameters;
 }
 
-- (NSDictionary * _Nonnull)testResultsForNull:(NSDictionary * _Nonnull)results{
-    NSMutableDictionary *testDictionary = [NSMutableDictionary dictionaryWithDictionary:results];
-    NSArray *keys = [testDictionary allKeys];
+- (void)removeNull:(NSMutableDictionary * _Nonnull)results{
+    NSArray *keys = [results allKeys];
     for (id key in keys) {
-        if ([testDictionary valueForKey:key] == [NSNull null]) {
-            [testDictionary setValue:@"Unknown" forKey:key];
+        if ([results valueForKey:key] == [NSNull null]) {
+            [results removeObjectForKey:key];
         }
     }
-    
-    return [NSDictionary dictionaryWithDictionary:testDictionary];
 }
 
 #pragma mark - UIWebViewDelegate Methods
