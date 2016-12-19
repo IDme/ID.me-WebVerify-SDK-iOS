@@ -2,7 +2,6 @@
 //  IDmeWebVerifyKeychainData.h
 //  WebVerifySample
 //
-//  Created by Mathias Claassen on 12/9/16.
 //  Copyright © 2016 ID.me, Inc. All rights reserved.
 //
 
