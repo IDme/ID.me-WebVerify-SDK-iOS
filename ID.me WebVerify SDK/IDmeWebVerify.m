@@ -229,8 +229,13 @@
 
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
-    NSURLRequest *request = [NSURLRequest requestWithURL:requestURL];
-    [_webView loadRequest:request];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
+    // Sends an empty cookie to prevent the server of auto loging in the user. This is a workaround in iOS 8
+    // to avoid sending stored cookies when loading the request in the WKWebView. On iOS9+ use a non-persistent
+    // datastore which won't save any cookie (it's intended to implement "private browsing" in a webview).
+    request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+    [request setValue:@"" forHTTPHeaderField:@"Cookie"];
+    [_webView loadRequest:[request copy]];
 }
 
 #pragma mark - WebView Persistance Methods (Private)
@@ -240,7 +245,15 @@
                                      0.0f,
                                      parentViewControllerViewFrame.size.width,
                                      parentViewControllerViewFrame.size.height);
-    WKWebView *webView = [[WKWebView alloc] initWithFrame:webViewFrame];
+
+    WKWebViewConfiguration *configuration = [WKWebViewConfiguration new];
+
+    if ([configuration respondsToSelector:@selector(setWebsiteDataStore:)]) {
+        configuration.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
+    }
+
+    WKWebView *webView = [[WKWebView alloc] initWithFrame:webViewFrame configuration:configuration];
+
     webView.navigationDelegate = self;
     webView.allowsBackForwardNavigationGestures = YES;
 
@@ -260,17 +273,17 @@
 }
 
 - (void)clearWebViewCacheAndCookies {
-    // Clear Cache
-    [[NSURLCache sharedURLCache] removeAllCachedResponses];
-    [[NSURLCache sharedURLCache] setDiskCapacity:0];
-    [[NSURLCache sharedURLCache] setMemoryCapacity:0];
-    [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"WebKitCacheModelPreferenceKey"];
-    
     // Clear Cookies
     NSHTTPCookie *cookie;
     NSHTTPCookieStorage *storage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+
+    NSURL *url = [[NSURL alloc] initWithString:[NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, @"", @"", @""]];
+    NSString *domain = [url.host stringByReplacingOccurrencesOfString:@"api" withString:@""];
     for (cookie in [storage cookies]) {
-        [storage deleteCookie:cookie];
+        if ([cookie.domain isEqualToString:domain]) {
+            // Delete ID.me cookies for security
+            [storage deleteCookie:cookie];
+        }
     }
 }
 
