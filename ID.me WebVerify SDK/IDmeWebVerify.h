@@ -11,10 +11,12 @@
 #define IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED    @"The user exited the modal navigationController before being verified."
 #define IDME_WEB_VERIFY_ERROR_DOMAIN                 @"ID.me Web Verify Error Domain"
 
+
 @interface IDmeWebVerify : NSObject
 
 typedef void (^IDmeVerifyWebVerifyProfileResults)(NSDictionary  * _Nullable userProfile, NSError  * _Nullable error);
 typedef void (^IDmeVerifyWebVerifyTokenResults)(NSString *  _Nullable accessToken, NSError  * _Nullable error);
+typedef void (^IDmeVerifyWebVerifyConnectionResults)(NSError  * _Nullable error);
 
 /// This typedef differentiates errors that may occur when authentication a user
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
@@ -38,7 +40,20 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
     IDmeWebVerifyErrorCodeNotAuthorized,
 
     /// Error thrown for not implemented features like token refreshing.
-    IDmeWebVerifyErrorCodeNotImplemented
+    IDmeWebVerifyErrorCodeNotImplemented,
+
+    IDmeWebVerifyErrorCodeFailedRegisteringConnection
+};
+
+/// This enum defines the different connections that a user can connect to. Used to login to the different platforms
+typedef NS_ENUM(NSUInteger, IDmeWebVerifyConnection)
+{
+    IDWebVerifyConnectionDSLogon,
+    IDWebVerifyConnectionFacebook,
+    IDWebVerifyConnectionGooglePlus,
+    IDWebVerifyConnectionLinkedin,
+    IDWebVerifyConnectionPaypal
+
 };
 
 /// THe ID.me WebVerify Singleton method
@@ -88,5 +103,10 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
  Invalidates and deletes all tokens stored by the SDK.
  */
 - (void)logout;
+
+/**
+ Registers a new connection for the user..
+ */
+- (void)registerConnectionInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyConnection)type result:(IDmeVerifyWebVerifyConnectionResults _Nonnull)callback;
 
 @end
