@@ -10,10 +10,13 @@
 #import "IDmeWebVerifyNavigationController.h"
 #import <WebKit/WebKit.h>
 #import "IDmeWebVerifyKeychainData.h"
+#import "ConnectionDelegate.h"
 
 /// API Constants (Production)
-#define IDME_WEB_VERIFY_GET_AUTH_URI                    @"https://api.id.me/oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
-#define IDME_WEB_VERIFY_GET_USER_PROFILE                @"https://api.id.me/api/public/v2/data.json?access_token=%@"
+#define IDME_WEB_VERIFY_BASE_URL                        @"https://api.id.me/"
+#define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
+#define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
+#define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
@@ -41,6 +44,8 @@
 
 @implementation IDmeWebVerify {
     NSString* requestScope;
+    IDmeWebVerifyConnection connectionType;
+    ConnectionDelegate* connectionDelegate;
 }
 
 #pragma mark - Initialization Methods
@@ -58,6 +63,7 @@
     self = [super init];
     if (self) {
         _keychainData = [[IDmeWebVerifyKeychainData alloc] init];
+        connectionDelegate = [[ConnectionDelegate alloc] init];
         [self clearWebViewCacheAndCookies];
     }
     
@@ -98,7 +104,34 @@
     [self clearWebViewCacheAndCookies];
     requestScope = scope;
     [self setPresentingViewController:externalViewController];
-    [self launchWebNavigationController];
+    [self launchWebNavigationControllerWithDelegate:self completion:^{
+
+        // GET Access Token via UIWebView flow
+        [self loadWebViewWithAccessTokenRequestPage];
+        
+    }];
+}
+
+-(void)registerConnectionInViewController:(UIViewController *)viewController
+                                    scope:(NSString *)scope
+                                     type:(IDmeWebVerifyConnection)type
+                                   result:(IDmeVerifyWebVerifyConnectionResults)callback {
+    NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
+    __weak IDmeWebVerify *weakself = self;
+    connectionDelegate.callback = ^(NSError* error){
+        callback(error);
+        [weakself destroyWebNavigationController];
+    };
+    connectionDelegate.redirectUri = self.redirectURI;
+    [self clearWebViewCacheAndCookies];
+    requestScope = scope;
+    connectionType = type;
+    [self setPresentingViewController:viewController];
+    [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
+
+        // Register Connection via UIWebView flow
+        [self loadWebViewWithConnectionRegisterRequestPage];
+    }];
 }
 
 #pragma mark - Other public functions
@@ -111,7 +144,7 @@
                                     webVerificationResults(nil, error);
                                     // Dismiss _webViewController and clear _webView cache
                                     if (self.webNavigationController) {
-                                        [self destroyWebNavigationController:self];
+                                        [self destroyWebNavigationController];
                                     }
                                     return;
                                 }
@@ -145,7 +178,7 @@
 
                                         // Dismiss _webViewController and clear _webView cache
                                         if (self.webNavigationController) {
-                                            [self destroyWebNavigationController:self];
+                                            [self destroyWebNavigationController];
                                         }
                                     });
                                     
@@ -201,26 +234,20 @@
         callback(nil, [self noSuchScopeErrorWithUserInfo:nil]);
     }
 
-
 }
 
 #pragma mark - Web view Methods
-- (void)launchWebNavigationController {
+- (void)launchWebNavigationControllerWithDelegate:(id<WKNavigationDelegate>)delegate completion:(void (^ __nullable)(void))completion {
 
     // Initialize _webView
-    _webView = [self createWebView];
+    _webView = [self createWebViewWithDelegate:delegate];
 
     // Initialize _webNavigationController
-    _webNavigationController = [self createWebNavigationController];
+    _webNavigationController = [self createWebNavigationController: delegate];
 
     // Present _webNavigationController
     [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
-    [_presentingViewController presentViewController:_webNavigationController animated:YES completion:^{
-
-        // GET Access Token via UIWebView flow
-        [self loadWebViewWithAccessTokenRequestPage];
-
-    }];
+    [_presentingViewController presentViewController:_webNavigationController animated:YES completion:completion];
 
 }
 
@@ -238,8 +265,25 @@
     [_webView loadRequest:[request copy]];
 }
 
+- (void)loadWebViewWithConnectionRegisterRequestPage {
+    [self getAccessTokenWithScope:requestScope
+                  forceRefreshing:NO
+                           result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
+
+                               NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_REGISTER_CONNECTION_URI,
+                                                          _clientID, _redirectURI, requestScope, [self stringForConnection:connectionType], accessToken ?: @""];
+
+                               requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+                               NSURL *requestURL = [NSURL URLWithString:requestString];
+                               NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
+                               request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+                               [request setValue:@"" forHTTPHeaderField:@"Cookie"];
+                               [_webView loadRequest:[request copy]];
+                           }];
+}
+
 #pragma mark - WebView Persistance Methods (Private)
-- (WKWebView * _Nonnull)createWebView {
+- (WKWebView * _Nonnull)createWebViewWithDelegate:(id<WKNavigationDelegate>)delegate {
     CGRect parentViewControllerViewFrame = [_presentingViewController.view frame];
     CGRect webViewFrame = CGRectMake(0.0f,
                                      0.0f,
@@ -254,7 +298,7 @@
 
     WKWebView *webView = [[WKWebView alloc] initWithFrame:webViewFrame configuration:configuration];
 
-    webView.navigationDelegate = self;
+    webView.navigationDelegate = delegate;
     webView.allowsBackForwardNavigationGestures = YES;
 
     return webView;
@@ -287,7 +331,7 @@
     }
 }
 
-- (IDmeWebVerifyNavigationController * _Nonnull)createWebNavigationController {
+- (IDmeWebVerifyNavigationController * _Nonnull)createWebNavigationController:(id)cancelTarget {
     // Initialize webViewController
     UIViewController *webViewController = [[UIViewController alloc] init];
     [webViewController.view setFrame:[_webView frame]];
@@ -297,8 +341,8 @@
     // Initialize 'Cancel' UIBarButtonItem
     UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Cancel"
                                                                             style:UIBarButtonItemStyleDone
-                                                                           target:self
-                                                                           action:@selector(destroyWebNavigationController:)];
+                                                                           target:cancelTarget
+                                                                           action:@selector(cancelTapped:)];
     NSDictionary *buttonAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorLightBlue};
     [cancelBarButtonItem setTitleTextAttributes:buttonAttributes forState:UIControlStateNormal];
     [cancelBarButtonItem setTintColor:kIDmeWebVerifyColorGreen];
@@ -314,7 +358,7 @@
     return navigationController;
 }
 
-- (void)destroyWebNavigationController:(id)sender{
+- (void)cancelTapped:(id)sender{
     if ([sender isMemberOfClass:[UIBarButtonItem class]]) {
         NSDictionary *details = @{ NSLocalizedDescriptionKey : IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED };
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
@@ -326,6 +370,11 @@
             _webVerificationProfileResults(nil, error);
         }
     }
+
+    [self destroyWebNavigationController];
+}
+
+- (void)destroyWebNavigationController {
 
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     [_webNavigationController dismissViewControllerAnimated:YES completion:^{
@@ -411,7 +460,7 @@
             [self getUserProfileWithScope:requestScope result:_webVerificationProfileResults];
         else {
             _webVerificationTokenResults(accessToken, nil);
-            [self destroyWebNavigationController:self];
+            [self destroyWebNavigationController];
         }
 
         decisionHandler(WKNavigationActionPolicyCancel);
@@ -429,7 +478,7 @@
         } else {
             _webVerificationProfileResults(nil, error);
         }
-        [self destroyWebNavigationController:self];
+        [self destroyWebNavigationController];
 
         decisionHandler(WKNavigationActionPolicyCancel);
         return;
@@ -460,10 +509,35 @@
     return [self errorWithCode:IDmeWebVerifyErrorCodeNotAuthorized userInfo:userInfo];
 }
 
+- (NSError * _Nonnull)failedToRegisterConnectionWithUserInfo:(NSDictionary* _Nullable)userInfo {
+    return [self errorWithCode:IDmeWebVerifyErrorCodeFailedRegisteringConnection userInfo:userInfo];
+}
+
 - (NSError * _Nonnull)errorWithCode:(IDmeWebVerifyErrorCode)code  userInfo:(NSDictionary* _Nullable)userInfo {
     return [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
                                       code:code
                                   userInfo:userInfo];
+}
+
+#pragma mark - Helpers - Enums
+- (NSString * _Nonnull)stringForConnection:(IDmeWebVerifyConnection)type {
+    switch (type) {
+        case IDWebVerifyConnectionDSLogon:
+            return @"dslogon";
+            break;
+        case IDWebVerifyConnectionFacebook:
+            return @"facebook";
+            break;
+        case IDWebVerifyConnectionGooglePlus:
+            return @"google";
+            break;
+        case IDWebVerifyConnectionLinkedin:
+            return @"linkedin";
+            break;
+        case IDWebVerifyConnectionPaypal:
+            return @"paypal";
+            break;
+    }
 }
 
 @end

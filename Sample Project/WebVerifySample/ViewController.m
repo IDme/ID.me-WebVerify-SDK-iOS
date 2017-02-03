@@ -56,9 +56,9 @@
 
     UIButton *tokenButton = [UIButton new];
     [tokenButton setTranslatesAutoresizingMaskIntoConstraints:NO];
-    [tokenButton setTitle:@"Test token!" forState:UIControlStateNormal];
+    [tokenButton setTitle:@"Test connection!" forState:UIControlStateNormal];
     [tokenButton setBackgroundColor:[UIColor lightGrayColor]];
-    [tokenButton addTarget:self action:@selector(tokenTestAction:) forControlEvents:UIControlEventTouchUpInside];
+    [tokenButton addTarget:self action:@selector(tokenConnection:) forControlEvents:UIControlEventTouchUpInside];
     [tokenButton.layer setCornerRadius:5.0f];
     [self.view addSubview:tokenButton];
 
@@ -121,13 +121,15 @@
 
 }
 
-- (void)tokenTestAction:(id)sender {
-    [[IDmeWebVerify sharedInstance] getUserProfileWithScope: scope result:^(NSDictionary *userProfile, NSError *error) {
-        [self resultsWithUserProfile:userProfile andError:error];
-        _textView.text = [_textView.text stringByAppendingString:@"\nUpdated with saved token"];
-    }];
-    [[IDmeWebVerify sharedInstance] getAccessTokenWithScope:scope forceRefreshing:NO result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
-        NSLog(@"token: %@", accessToken);
+
+- (void)tokenConnection:(id)sender {
+    [[IDmeWebVerify sharedInstance] registerConnectionInViewController:self scope:scope type:IDWebVerifyConnectionGooglePlus result:^(NSError * _Nullable error) {
+        if (error) { // Error
+            NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
+            _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
+        } else { // Verification was successful
+            _textView.text = @"Successfully added Google connection";
+        }
     }];
 }
 
