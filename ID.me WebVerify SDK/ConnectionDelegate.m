@@ -32,11 +32,9 @@
     if (query) {
 
         if ([query hasPrefix:self.redirectUri]) {
-            //TODO: do we have to get the code?
             self.callback(nil);
             decisionHandler(WKNavigationActionPolicyCancel);
         }
-        NSLog(@"%@", query);
     }
 
 
