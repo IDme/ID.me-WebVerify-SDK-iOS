@@ -40,9 +40,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
     IDmeWebVerifyErrorCodeNotAuthorized,
 
     /// Error thrown for not implemented features like token refreshing.
-    IDmeWebVerifyErrorCodeNotImplemented,
-
-    IDmeWebVerifyErrorCodeFailedRegisteringConnection
+    IDmeWebVerifyErrorCodeNotImplemented
 };
 
 /// This enum defines the different connections that a user can connect to. Used to login to the different platforms
@@ -53,6 +51,18 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyConnection)
     IDWebVerifyConnectionGooglePlus,
     IDWebVerifyConnectionLinkedin,
     IDWebVerifyConnectionPaypal
+
+};
+
+/// This enum defines the different IDs that a user can connect to his account.
+typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
+{
+    IDmeWebVerifyAffiliationGovernment,
+    IDmeWebVerifyAffiliationIdentity,
+    IDmeWebVerifyAffiliationMilitary,
+    IDmeWebVerifyAffiliationResponder,
+    IDmeWebVerifyAffiliationStudent,
+    IDmeWebVerifyAffiliationTeacher
 
 };
 
@@ -105,8 +115,13 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyConnection)
 - (void)logout;
 
 /**
- Registers a new connection for the user..
+ Registers a new connection for the user.
  */
 - (void)registerConnectionInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyConnection)type result:(IDmeVerifyWebVerifyConnectionResults _Nonnull)callback;
+
+/**
+ Registers a new ID for the user.
+ */
+- (void)registerAffiliationInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyAffiliation)type result:(IDmeVerifyWebVerifyConnectionResults _Nonnull)callback;
 
 @end
