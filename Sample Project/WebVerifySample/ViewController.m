@@ -147,7 +147,7 @@
 }
 
 - (void)addAffiliation:(id)sender {
-    [[IDmeWebVerify sharedInstance] registerIDInViewController:self scope:scope type:IDmeWebVerifyAffiliationMilitary result:^(NSError * _Nullable error) {
+    [[IDmeWebVerify sharedInstance] registerAffiliationInViewController:self scope:scope type:IDmeWebVerifyAffiliationMilitary result:^(NSError * _Nullable error) {
         if (error) { // Error
             NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
             _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];

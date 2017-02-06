@@ -122,6 +122,6 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
 /**
  Registers a new ID for the user.
  */
-- (void)registerIDInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyAffiliation)type result:(IDmeVerifyWebVerifyConnectionResults _Nonnull)callback;
+- (void)registerAffiliationInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyAffiliation)type result:(IDmeVerifyWebVerifyConnectionResults _Nonnull)callback;
 
 @end

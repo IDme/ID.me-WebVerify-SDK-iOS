@@ -17,7 +17,7 @@
 #define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
 #define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
 #define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
-#define IDME_WEB_VERIFY_REGISTER_ID_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&access_token=%@"
+#define IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI        IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&access_token=%@"
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
@@ -145,7 +145,7 @@
     }];
 }
 
--(void)registerIDInViewController:(UIViewController *)viewController
+-(void)registerAffiliationInViewController:(UIViewController *)viewController
                             scope:(NSString *)scope
                              type:(IDmeWebVerifyAffiliation)type
                            result:(IDmeVerifyWebVerifyConnectionResults)callback {
@@ -162,12 +162,12 @@
     [self setPresentingViewController:viewController];
     [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
 
-        // Register ID via UIWebView flow
+        // Register Affiliation via UIWebView flow
         [weakself getAccessTokenWithScope:requestScope
                           forceRefreshing:NO
                                    result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
 
-                                       NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_REGISTER_ID_URI,
+                                       NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI,
                                                                   _clientID, _redirectURI, [weakself stringForAffiliation:affiliationType], accessToken ?: @""];
                                        [weakself loadWebViewWithRequest:requestString];
                                }];
