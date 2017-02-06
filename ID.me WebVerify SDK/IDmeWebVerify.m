@@ -17,6 +17,7 @@
 #define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
 #define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
 #define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
+#define IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI        IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&access_token=%@"
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
@@ -45,6 +46,7 @@
 @implementation IDmeWebVerify {
     NSString* requestScope;
     IDmeWebVerifyConnection connectionType;
+    IDmeWebVerifyAffiliation affiliationType;
     ConnectionDelegate* connectionDelegate;
 }
 
@@ -104,10 +106,11 @@
     [self clearWebViewCacheAndCookies];
     requestScope = scope;
     [self setPresentingViewController:externalViewController];
+    __weak IDmeWebVerify *weakself = self;
     [self launchWebNavigationControllerWithDelegate:self completion:^{
 
         // GET Access Token via UIWebView flow
-        [self loadWebViewWithAccessTokenRequestPage];
+        [weakself loadWebViewWithRequest:[NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, requestScope]];
         
     }];
 }
@@ -130,12 +133,50 @@
     [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
 
         // Register Connection via UIWebView flow
-        [self loadWebViewWithConnectionRegisterRequestPage];
+        [weakself getAccessTokenWithScope:requestScope
+                          forceRefreshing:NO
+                                   result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
+
+                                       NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_REGISTER_CONNECTION_URI,
+                                                                  _clientID, _redirectURI, requestScope,
+                                                                  [weakself stringForConnection:connectionType], accessToken ?: @""];
+                                       [weakself loadWebViewWithRequest:requestString];
+                               }];
+    }];
+}
+
+-(void)registerAffiliationInViewController:(UIViewController *)viewController
+                            scope:(NSString *)scope
+                             type:(IDmeWebVerifyAffiliation)type
+                           result:(IDmeVerifyWebVerifyConnectionResults)callback {
+    NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
+    __weak IDmeWebVerify *weakself = self;
+    connectionDelegate.callback = ^(NSError* error){
+        callback(error);
+        [weakself destroyWebNavigationController];
+    };
+    connectionDelegate.redirectUri = self.redirectURI;
+    [self clearWebViewCacheAndCookies];
+    requestScope = scope;
+    affiliationType = type;
+    [self setPresentingViewController:viewController];
+    [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
+
+        // Register Affiliation via UIWebView flow
+        [weakself getAccessTokenWithScope:requestScope
+                          forceRefreshing:NO
+                                   result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
+
+                                       NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI,
+                                                                  _clientID, _redirectURI, [weakself stringForAffiliation:affiliationType], accessToken ?: @""];
+                                       [weakself loadWebViewWithRequest:requestString];
+                               }];
     }];
 }
 
 #pragma mark - Other public functions
 - (void)getUserProfileWithScope:(NSString* _Nullable)scope result:(IDmeVerifyWebVerifyProfileResults _Nonnull)webVerificationResults {
+    __weak IDmeWebVerify *weakself = self;
     [self getAccessTokenWithScope:scope
                   forceRefreshing:NO
                            result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
@@ -143,8 +184,8 @@
                                 if (!accessToken) {
                                     webVerificationResults(nil, error);
                                     // Dismiss _webViewController and clear _webView cache
-                                    if (self.webNavigationController) {
-                                        [self destroyWebNavigationController];
+                                    if (weakself.webNavigationController) {
+                                        [weakself destroyWebNavigationController];
                                     }
                                     return;
                                 }
@@ -163,22 +204,22 @@
                                         if ([data length] && error == nil && statusCode == 200) {
                                             NSError* serializingError;
                                             NSMutableDictionary *results = (NSMutableDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments | NSJSONReadingMutableContainers error:&serializingError];
-                                            [self removeNull:results];
+                                            [weakself removeNull:results];
                                             if (serializingError == nil) {
                                                     webVerificationResults(results, nil);
                                             } else {
-                                                webVerificationResults(nil, [self failedFetchingProfileErrorWithUserInfo:error.userInfo]);
+                                                webVerificationResults(nil, [weakself failedFetchingProfileErrorWithUserInfo:error.userInfo]);
                                             }
                                         } else if (statusCode == 401) {
                                             // TODO: refresh token
-                                            webVerificationResults(nil, [self notAuthorizedErrorWithUserInfo:nil]);
+                                            webVerificationResults(nil, [weakself notAuthorizedErrorWithUserInfo:nil]);
                                         } else {
-                                            webVerificationResults(nil, [self failedFetchingProfileErrorWithUserInfo:error.userInfo]);
+                                            webVerificationResults(nil, [weakself failedFetchingProfileErrorWithUserInfo:error.userInfo]);
                                         }
 
                                         // Dismiss _webViewController and clear _webView cache
-                                        if (self.webNavigationController) {
-                                            [self destroyWebNavigationController];
+                                        if (weakself.webNavigationController) {
+                                            [weakself destroyWebNavigationController];
                                         }
                                     });
                                     
@@ -251,8 +292,7 @@
 
 }
 
-- (void)loadWebViewWithAccessTokenRequestPage {
-    NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, requestScope];
+- (void)loadWebViewWithRequest:(NSString* _Nonnull)requestString {
 
     requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSURL *requestURL = [NSURL URLWithString:requestString];
@@ -263,23 +303,6 @@
     request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
     [request setValue:@"" forHTTPHeaderField:@"Cookie"];
     [_webView loadRequest:[request copy]];
-}
-
-- (void)loadWebViewWithConnectionRegisterRequestPage {
-    [self getAccessTokenWithScope:requestScope
-                  forceRefreshing:NO
-                           result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
-
-                               NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_REGISTER_CONNECTION_URI,
-                                                          _clientID, _redirectURI, requestScope, [self stringForConnection:connectionType], accessToken ?: @""];
-
-                               requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-                               NSURL *requestURL = [NSURL URLWithString:requestString];
-                               NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL];
-                               request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
-                               [request setValue:@"" forHTTPHeaderField:@"Cookie"];
-                               [_webView loadRequest:[request copy]];
-                           }];
 }
 
 #pragma mark - WebView Persistance Methods (Private)
@@ -377,10 +400,11 @@
 - (void)destroyWebNavigationController {
 
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    __weak IDmeWebVerify *weakself = self;
     [_webNavigationController dismissViewControllerAnimated:YES completion:^{
-        [self destroyWebView];
-        [self clearWebViewCacheAndCookies];
-        [self setWebNavigationController:nil];
+        [weakself destroyWebView];
+        [weakself clearWebViewCacheAndCookies];
+        [weakself setWebNavigationController:nil];
     }];
 }
 
@@ -509,10 +533,6 @@
     return [self errorWithCode:IDmeWebVerifyErrorCodeNotAuthorized userInfo:userInfo];
 }
 
-- (NSError * _Nonnull)failedToRegisterConnectionWithUserInfo:(NSDictionary* _Nullable)userInfo {
-    return [self errorWithCode:IDmeWebVerifyErrorCodeFailedRegisteringConnection userInfo:userInfo];
-}
-
 - (NSError * _Nonnull)errorWithCode:(IDmeWebVerifyErrorCode)code  userInfo:(NSDictionary* _Nullable)userInfo {
     return [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
                                       code:code
@@ -536,6 +556,29 @@
             break;
         case IDWebVerifyConnectionPaypal:
             return @"paypal";
+            break;
+    }
+}
+
+- (NSString * _Nonnull)stringForAffiliation:(IDmeWebVerifyAffiliation)type {
+    switch (type) {
+        case IDmeWebVerifyAffiliationGovernment:
+            return @"government";
+            break;
+        case IDmeWebVerifyAffiliationIdentity:
+            return @"identity";
+            break;
+        case IDmeWebVerifyAffiliationMilitary:
+            return @"military";
+            break;
+        case IDmeWebVerifyAffiliationResponder:
+            return @"responder";
+            break;
+        case IDmeWebVerifyAffiliationStudent:
+            return @"student";
+            break;
+        case IDmeWebVerifyAffiliationTeacher:
+            return @"teacher";
             break;
     }
 }
