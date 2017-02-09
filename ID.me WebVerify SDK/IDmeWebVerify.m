@@ -13,7 +13,7 @@
 #import "ConnectionDelegate.h"
 
 /// API Constants (Production)
-#define IDME_WEB_VERIFY_BASE_URL                        @"https://api.idmelabs.com/"
+#define IDME_WEB_VERIFY_BASE_URL                        @"https://api.id.me/"
 #define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
 #define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
 #define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
