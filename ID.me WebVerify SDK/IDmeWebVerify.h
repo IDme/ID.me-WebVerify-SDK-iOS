@@ -46,12 +46,10 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
 /// This enum defines the different connections that a user can connect to. Used to login to the different platforms
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyConnection)
 {
-    IDWebVerifyConnectionDSLogon,
     IDWebVerifyConnectionFacebook,
     IDWebVerifyConnectionGooglePlus,
     IDWebVerifyConnectionLinkedin,
     IDWebVerifyConnectionPaypal
-
 };
 
 /// This enum defines the different IDs that a user can connect to his account.
