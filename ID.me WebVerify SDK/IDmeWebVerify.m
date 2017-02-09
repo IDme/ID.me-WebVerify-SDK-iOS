@@ -542,9 +542,6 @@
 #pragma mark - Helpers - Enums
 - (NSString * _Nonnull)stringForConnection:(IDmeWebVerifyConnection)type {
     switch (type) {
-        case IDWebVerifyConnectionDSLogon:
-            return @"dslogon";
-            break;
         case IDWebVerifyConnectionFacebook:
             return @"facebook";
             break;
