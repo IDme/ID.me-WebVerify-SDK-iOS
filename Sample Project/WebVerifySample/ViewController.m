@@ -111,10 +111,11 @@
     [_textView setText:nil];
 
     [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
-                                    scope:scope
-                                    withResults:^(NSDictionary *userProfile, NSError *error) {
-                                        [self resultsWithUserProfile:userProfile andError:error];
-                                    }];
+                                                         scope:scope
+                                                    withCancel:YES
+                                                   withResults:^(NSDictionary *userProfile, NSError *error) {
+                                                       [self resultsWithUserProfile:userProfile andError:error];
+                                                   }];
 /*
  OR
     [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
