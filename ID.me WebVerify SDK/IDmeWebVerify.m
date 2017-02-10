@@ -562,9 +562,6 @@
         case IDmeWebVerifyAffiliationGovernment:
             return @"government";
             break;
-        case IDmeWebVerifyAffiliationIdentity:
-            return @"identity";
-            break;
         case IDmeWebVerifyAffiliationMilitary:
             return @"military";
             break;
