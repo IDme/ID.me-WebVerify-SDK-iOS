@@ -56,12 +56,10 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyConnection)
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
 {
     IDmeWebVerifyAffiliationGovernment,
-    IDmeWebVerifyAffiliationIdentity,
     IDmeWebVerifyAffiliationMilitary,
     IDmeWebVerifyAffiliationResponder,
     IDmeWebVerifyAffiliationStudent,
     IDmeWebVerifyAffiliationTeacher
-
 };
 
 /// THe ID.me WebVerify Singleton method
