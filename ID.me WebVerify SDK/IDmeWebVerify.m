@@ -81,25 +81,30 @@
 #pragma mark - Authorization Methods (Public)
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                             scope:(NSString *)scope
+                        withCancel:(BOOL)cancel
                       withResults:(IDmeVerifyWebVerifyProfileResults)webVerificationResults {
     [self setWebVerificationProfileResults:webVerificationResults];
     [self verifyUserInViewController: externalViewController
                                scope: scope
+                          withCancel:(BOOL)cancel
                             loadUser: YES];
 }
 
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                              scope:(NSString *)scope
+                        withCancel:(BOOL)cancel
                    withTokenResult:(IDmeVerifyWebVerifyTokenResults)webVerificationResults {
     [self setWebVerificationTokenResults:webVerificationResults];
     [self verifyUserInViewController: externalViewController
                                scope: scope
+                          withCancel:(BOOL)cancel
                             loadUser: NO];
 }
 
 #pragma mark - Authorization Methods (Private)
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                              scope:(NSString *)scope
+                        withCancel:(BOOL)cancel
                           loadUser:(Boolean)loadUser {
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
     _loadUser = loadUser;
@@ -107,7 +112,7 @@
     requestScope = scope;
     [self setPresentingViewController:externalViewController];
     __weak IDmeWebVerify *weakself = self;
-    [self launchWebNavigationControllerWithDelegate:self completion:^{
+    [self launchWebNavigationControllerWithDelegate:self showCancel:cancel completion:^{
 
         // GET Access Token via UIWebView flow
         [weakself loadWebViewWithRequest:[NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, requestScope]];
@@ -130,7 +135,7 @@
     requestScope = scope;
     connectionType = type;
     [self setPresentingViewController:viewController];
-    [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
+    [self launchWebNavigationControllerWithDelegate:connectionDelegate showCancel:YES completion:^{
 
         // Register Connection via UIWebView flow
         [weakself getAccessTokenWithScope:requestScope
@@ -160,7 +165,7 @@
     requestScope = scope;
     affiliationType = type;
     [self setPresentingViewController:viewController];
-    [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
+    [self launchWebNavigationControllerWithDelegate:connectionDelegate showCancel:YES completion:^{
 
         // Register Affiliation via UIWebView flow
         [weakself getAccessTokenWithScope:requestScope
@@ -278,13 +283,13 @@
 }
 
 #pragma mark - Web view Methods
-- (void)launchWebNavigationControllerWithDelegate:(id<WKNavigationDelegate>)delegate completion:(void (^ __nullable)(void))completion {
+- (void)launchWebNavigationControllerWithDelegate:(id<WKNavigationDelegate>)delegate showCancel:(BOOL)cancel completion:(void (^ __nullable)(void))completion {
 
     // Initialize _webView
     _webView = [self createWebViewWithDelegate:delegate];
 
     // Initialize _webNavigationController
-    _webNavigationController = [self createWebNavigationController: delegate];
+    _webNavigationController = [self createWebNavigationController: delegate showCancel: cancel];
 
     // Present _webNavigationController
     [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
@@ -354,23 +359,26 @@
     }
 }
 
-- (IDmeWebVerifyNavigationController * _Nonnull)createWebNavigationController:(id)cancelTarget {
+- (IDmeWebVerifyNavigationController * _Nonnull)createWebNavigationController:(id)cancelTarget showCancel:(BOOL)cancel {
     // Initialize webViewController
     UIViewController *webViewController = [[UIViewController alloc] init];
     [webViewController.view setFrame:[_webView frame]];
     [webViewController setTitle:@"Verify with ID.me"];
     [webViewController.view addSubview:[self webView]];
-    
-    // Initialize 'Cancel' UIBarButtonItem
-    UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Cancel"
-                                                                            style:UIBarButtonItemStyleDone
-                                                                           target:cancelTarget
-                                                                           action:@selector(cancelTapped:)];
-    NSDictionary *buttonAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorLightBlue};
-    [cancelBarButtonItem setTitleTextAttributes:buttonAttributes forState:UIControlStateNormal];
-    [cancelBarButtonItem setTintColor:kIDmeWebVerifyColorGreen];
-    [webViewController.navigationItem setLeftBarButtonItem:cancelBarButtonItem];
-    
+
+    if (cancel) {
+        // Initialize 'Cancel' UIBarButtonItem
+
+        UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Cancel"
+                                                                                style:UIBarButtonItemStyleDone
+                                                                               target:cancelTarget
+                                                                               action:@selector(cancelTapped:)];
+        NSDictionary *buttonAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorLightBlue};
+        [cancelBarButtonItem setTitleTextAttributes:buttonAttributes forState:UIControlStateNormal];
+        [cancelBarButtonItem setTintColor:kIDmeWebVerifyColorGreen];
+        [webViewController.navigationItem setLeftBarButtonItem:cancelBarButtonItem];
+    }
+
     // Initialize and customize UINavigationController with webViewController
     IDmeWebVerifyNavigationController *navigationController = [[IDmeWebVerifyNavigationController alloc] initWithRootViewController:webViewController];
     NSDictionary *titleAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorGreen};
