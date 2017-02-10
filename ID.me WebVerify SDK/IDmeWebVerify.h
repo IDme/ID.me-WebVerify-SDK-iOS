@@ -80,6 +80,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
  */
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
                              scope:(NSString * _Nonnull)scope
+                        withCancel:(BOOL)cancel
                        withResults:(IDmeVerifyWebVerifyProfileResults _Nonnull)webVerificationResults;
 
 /**
@@ -90,6 +91,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
 
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
                              scope:(NSString * _Nonnull)scope
+                        withCancel:(BOOL)cancel
                    withTokenResult:(IDmeVerifyWebVerifyTokenResults _Nonnull)webVerificationResults;
 
 /**
