@@ -29,7 +29,7 @@
 #define kIDmeWebVerifyColorLightBlue                    [UIColor colorWithRed:56.0f/255.0f green:168.0f/255.0f blue:232.0f/255.0f alpha:1.0f]
 #define kIDmeWebVerifyColorDarkBlue                     [UIColor colorWithRed:46.0f/255.0f green:61.0f/255.0f blue:80.0f/255.0f alpha:1.0f]
 
-@interface IDmeWebVerify () <WKNavigationDelegate>
+@interface IDmeWebVerify () <WKNavigationDelegate, WKUIDelegate>
 
 @property (nonatomic, copy) IDmeVerifyWebVerifyProfileResults webVerificationProfileResults;
 @property (nonatomic, copy) IDmeVerifyWebVerifyTokenResults webVerificationTokenResults;
@@ -283,7 +283,7 @@
 }
 
 #pragma mark - Web view Methods
-- (void)launchWebNavigationControllerWithDelegate:(id<WKNavigationDelegate>)delegate showCancel:(BOOL)cancel completion:(void (^ __nullable)(void))completion {
+- (void)launchWebNavigationControllerWithDelegate:(id<WKNavigationDelegate, WKUIDelegate>)delegate showCancel:(BOOL)cancel completion:(void (^ __nullable)(void))completion {
 
     // Initialize _webView
     _webView = [self createWebViewWithDelegate:delegate];
@@ -311,7 +311,7 @@
 }
 
 #pragma mark - WebView Persistance Methods (Private)
-- (WKWebView * _Nonnull)createWebViewWithDelegate:(id<WKNavigationDelegate>)delegate {
+- (WKWebView * _Nonnull)createWebViewWithDelegate:(id<WKNavigationDelegate, WKUIDelegate>)delegate {
     CGRect parentViewControllerViewFrame = [_presentingViewController.view frame];
     CGRect webViewFrame = CGRectMake(0.0f,
                                      0.0f,
@@ -327,6 +327,7 @@
     WKWebView *webView = [[WKWebView alloc] initWithFrame:webViewFrame configuration:configuration];
 
     webView.navigationDelegate = delegate;
+    webView.UIDelegate = delegate;
     webView.allowsBackForwardNavigationGestures = YES;
 
     return webView;
@@ -338,6 +339,7 @@
         [_webView loadHTMLString:@"" baseURL:nil];
         [_webView stopLoading];
         [_webView setNavigationDelegate:nil];
+        [_webView setUIDelegate:nil];
         [_webView removeFromSuperview];
         [self setWebView:nil];
     }
@@ -517,6 +519,16 @@
     }
 
     decisionHandler(WKNavigationActionPolicyAllow);
+}
+
+
+-(WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
+
+    if (!navigationAction.targetFrame.isMainFrame && [[UIApplication sharedApplication] canOpenURL:navigationAction.request.URL]) {
+        [[UIApplication sharedApplication] openURL:navigationAction.request.URL];
+    }
+
+    return nil;
 }
 
 #pragma mark - Accessor Methods
