@@ -373,10 +373,14 @@
     [webViewController setTitle:@"ID.me Wallet"];
     [webViewController.view addSubview:[self webView]];
 
+    NSBundle *bundle = [NSBundle bundleForClass:IDmeWebVerify.class];
+
     if (cancel) {
         // Initialize 'Cancel' UIBarButtonItem
 
-        UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/cancel.png"]
+        UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/cancel.png"
+                                                                                                 inBundle:bundle
+                                                                            compatibleWithTraitCollection:nil]
                                                                                 style:UIBarButtonItemStyleDone
                                                                                target:cancelTarget
                                                                                action:@selector(cancelTapped:)];
@@ -384,7 +388,9 @@
     }
 
     //set up back button
-    self.backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/back.png"]
+    self.backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/back.png"
+                                                                        inBundle:bundle
+                                                   compatibleWithTraitCollection:nil]
                                                        style:UIBarButtonItemStylePlain
                                                       target:self
                                                       action:@selector(backTapped:)];
