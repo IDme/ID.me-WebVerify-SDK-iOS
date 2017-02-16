@@ -10,9 +10,10 @@
 #import <WebKit/WebKit.h>
 #import "IDmeWebVerify.h"
 
-@interface ConnectionDelegate : NSObject <WKNavigationDelegate>
+@interface ConnectionDelegate : NSObject <WKNavigationDelegate, WKUIDelegate>
 
 @property (nonatomic, copy) void (^callback)(NSError* error);
+@property (nonatomic, copy) void (^onNavigationUpdate)();
 @property (nonatomic) NSString *redirectUri;
 
 @end

@@ -39,6 +39,7 @@
 @property (nonatomic, strong) UIViewController *presentingViewController;
 @property (nonatomic, strong) IDmeWebVerifyNavigationController *webNavigationController;
 @property (nonatomic, strong) WKWebView *webView;
+@property (nonatomic, strong) UIBarButtonItem *backButton;
 @property Boolean loadUser;
 
 @end
@@ -130,6 +131,9 @@
         callback(error);
         [weakself destroyWebNavigationController];
     };
+    connectionDelegate.onNavigationUpdate = ^(){
+        [weakself updateBackButton];
+    };
     connectionDelegate.redirectUri = self.redirectURI;
     [self clearWebViewCacheAndCookies];
     requestScope = scope;
@@ -159,6 +163,9 @@
     connectionDelegate.callback = ^(NSError* error){
         callback(error);
         [weakself destroyWebNavigationController];
+    };
+    connectionDelegate.onNavigationUpdate = ^(){
+        [weakself updateBackButton];
     };
     connectionDelegate.redirectUri = self.redirectURI;
     [self clearWebViewCacheAndCookies];
@@ -375,11 +382,14 @@
                                                                                 style:UIBarButtonItemStyleDone
                                                                                target:cancelTarget
                                                                                action:@selector(cancelTapped:)];
-        NSDictionary *buttonAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorLightBlue};
-        [cancelBarButtonItem setTitleTextAttributes:buttonAttributes forState:UIControlStateNormal];
-        [cancelBarButtonItem setTintColor:kIDmeWebVerifyColorGreen];
-        [webViewController.navigationItem setLeftBarButtonItem:cancelBarButtonItem];
+        [webViewController.navigationItem setRightBarButtonItem:cancelBarButtonItem];
     }
+
+    //set up back button
+    self.backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back"
+                                                       style:UIBarButtonItemStylePlain
+                                                      target:self
+                                                      action:@selector(backTapped:)];
 
     // Initialize and customize UINavigationController with webViewController
     IDmeWebVerifyNavigationController *navigationController = [[IDmeWebVerifyNavigationController alloc] initWithRootViewController:webViewController];
@@ -387,11 +397,12 @@
     [navigationController.navigationBar setTitleTextAttributes:titleAttributes];
     [navigationController.navigationBar setTintColor:kIDmeWebVerifyColorLightBlue];
     [navigationController.navigationBar setBarTintColor:kIDmeWebVerifyColorDarkBlue];
+
     
     return navigationController;
 }
 
-- (void)cancelTapped:(id)sender{
+- (void)cancelTapped:(id)sender {
     if ([sender isMemberOfClass:[UIBarButtonItem class]]) {
         NSDictionary *details = @{ NSLocalizedDescriptionKey : IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED };
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
@@ -405,6 +416,20 @@
     }
 
     [self destroyWebNavigationController];
+}
+
+- (void)backTapped:(id)sender {
+    if ([_webView canGoBack]) {
+        [_webView goBack];
+    }
+}
+
+- (void)updateBackButton {
+    if ([_webView canGoBack]) {
+        self.webNavigationController.topViewController.navigationItem.leftBarButtonItem = self.backButton;
+    } else {
+        self.webNavigationController.topViewController.navigationItem.leftBarButtonItem = nil;
+    }
 }
 
 - (void)destroyWebNavigationController {
@@ -447,6 +472,7 @@
 #pragma mark - UIWebViewDelegate Methods
 -(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    [self updateBackButton];
 }
 
 -(void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error{
@@ -520,7 +546,6 @@
 
     decisionHandler(WKNavigationActionPolicyAllow);
 }
-
 
 -(WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
 
