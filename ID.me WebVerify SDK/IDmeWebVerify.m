@@ -25,9 +25,7 @@
 #define IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM         @"error_description"
 
 /// Color Constants
-#define kIDmeWebVerifyColorGreen                        [UIColor colorWithRed:47.0f/255.0f green:192.0f/255.0f blue:115.0f/255.0f alpha:1.0f]
-#define kIDmeWebVerifyColorLightBlue                    [UIColor colorWithRed:56.0f/255.0f green:168.0f/255.0f blue:232.0f/255.0f alpha:1.0f]
-#define kIDmeWebVerifyColorDarkBlue                     [UIColor colorWithRed:46.0f/255.0f green:61.0f/255.0f blue:80.0f/255.0f alpha:1.0f]
+#define kIDmeWebVerifyColorBlue                     [UIColor colorWithRed:48.0f/255.0f green:160.0f/255.0f blue:224.0f/255.0f alpha:1.0f]
 
 @interface IDmeWebVerify () <WKNavigationDelegate, WKUIDelegate>
 
@@ -372,13 +370,13 @@
     // Initialize webViewController
     UIViewController *webViewController = [[UIViewController alloc] init];
     [webViewController.view setFrame:[_webView frame]];
-    [webViewController setTitle:@"Verify with ID.me"];
+    [webViewController setTitle:@"ID.me Wallet"];
     [webViewController.view addSubview:[self webView]];
 
     if (cancel) {
         // Initialize 'Cancel' UIBarButtonItem
 
-        UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Cancel"
+        UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/cancel.png"]
                                                                                 style:UIBarButtonItemStyleDone
                                                                                target:cancelTarget
                                                                                action:@selector(cancelTapped:)];
@@ -386,17 +384,17 @@
     }
 
     //set up back button
-    self.backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back"
+    self.backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/back.png"]
                                                        style:UIBarButtonItemStylePlain
                                                       target:self
                                                       action:@selector(backTapped:)];
 
     // Initialize and customize UINavigationController with webViewController
     IDmeWebVerifyNavigationController *navigationController = [[IDmeWebVerifyNavigationController alloc] initWithRootViewController:webViewController];
-    NSDictionary *titleAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorGreen};
+    NSDictionary *titleAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor]};
     [navigationController.navigationBar setTitleTextAttributes:titleAttributes];
-    [navigationController.navigationBar setTintColor:kIDmeWebVerifyColorLightBlue];
-    [navigationController.navigationBar setBarTintColor:kIDmeWebVerifyColorDarkBlue];
+    [navigationController.navigationBar setTintColor:[UIColor whiteColor]];
+    [navigationController.navigationBar setBarTintColor:kIDmeWebVerifyColorBlue];
 
     
     return navigationController;
