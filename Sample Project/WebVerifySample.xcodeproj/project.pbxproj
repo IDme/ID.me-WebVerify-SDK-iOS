@@ -21,6 +21,7 @@
 		8FA5991F1DFEEA1E0073F8BD /* SAMKeychain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FA5991E1DFEEA1E0073F8BD /* SAMKeychain.framework */; };
 		8FA599201DFEEA1E0073F8BD /* SAMKeychain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8FA5991E1DFEEA1E0073F8BD /* SAMKeychain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8FAA740A1DFB28CB00670130 /* IDmeWebVerifyKeychainData.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FAA74091DFB28CB00670130 /* IDmeWebVerifyKeychainData.m */; };
+		8FEDDECE1E56240100438B72 /* IDmeWebVerify.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 8FEDDECD1E56240100438B72 /* IDmeWebVerify.bundle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -63,6 +64,7 @@
 		8FA5991E1DFEEA1E0073F8BD /* SAMKeychain.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SAMKeychain.framework; path = ../Carthage/Build/iOS/SAMKeychain.framework; sourceTree = "<group>"; };
 		8FAA74081DFB289500670130 /* IDmeWebVerifyKeychainData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDmeWebVerifyKeychainData.h; sourceTree = "<group>"; };
 		8FAA74091DFB28CB00670130 /* IDmeWebVerifyKeychainData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeWebVerifyKeychainData.m; sourceTree = "<group>"; };
+		8FEDDECD1E56240100438B72 /* IDmeWebVerify.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = IDmeWebVerify.bundle; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +165,7 @@
 				8FAA74091DFB28CB00670130 /* IDmeWebVerifyKeychainData.m */,
 				8F5E340D1E43A1890052E27F /* ConnectionDelegate.h */,
 				8F5E340E1E43A1890052E27F /* ConnectionDelegate.m */,
+				8FEDDECD1E56240100438B72 /* IDmeWebVerify.bundle */,
 			);
 			name = "ID.me WebVerify SDK";
 			path = "../../ID.me WebVerify SDK";
@@ -223,6 +226,7 @@
 			files = (
 				8E3FE22918B3C729002533DF /* Images.xcassets in Resources */,
 				8E3FE21B18B3C729002533DF /* InfoPlist.strings in Resources */,
+				8FEDDECE1E56240100438B72 /* IDmeWebVerify.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
