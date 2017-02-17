@@ -9,5 +9,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.author       = { "Arthur Ariel Sabintsev" => "arthur@sabintsev.com" }
   s.license      = 'MIT'
+  s.ios.frameworks = 'UIKit', 'Foundation'
   s.dependency 'SAMKeychain', '~> 1.5'
+  s.resource = 'ID.me WebVerify SDK/IDmeWebVerify.bundle'
 end

@@ -12,6 +12,7 @@
 
 -(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    self.onNavigationUpdate();
 }
 
 -(void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error{
@@ -39,6 +40,15 @@
 
 
     decisionHandler(WKNavigationActionPolicyAllow);
+}
+
+-(WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
+
+    if (!navigationAction.targetFrame.isMainFrame && [[UIApplication sharedApplication] canOpenURL:navigationAction.request.URL]) {
+        [[UIApplication sharedApplication] openURL:navigationAction.request.URL];
+    }
+
+    return nil;
 }
 
 -(void)cancelTapped:(id)sender {

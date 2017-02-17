@@ -25,9 +25,7 @@
 #define IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM         @"error_description"
 
 /// Color Constants
-#define kIDmeWebVerifyColorGreen                        [UIColor colorWithRed:47.0f/255.0f green:192.0f/255.0f blue:115.0f/255.0f alpha:1.0f]
-#define kIDmeWebVerifyColorLightBlue                    [UIColor colorWithRed:56.0f/255.0f green:168.0f/255.0f blue:232.0f/255.0f alpha:1.0f]
-#define kIDmeWebVerifyColorDarkBlue                     [UIColor colorWithRed:46.0f/255.0f green:61.0f/255.0f blue:80.0f/255.0f alpha:1.0f]
+#define kIDmeWebVerifyColorBlue                     [UIColor colorWithRed:48.0f/255.0f green:160.0f/255.0f blue:224.0f/255.0f alpha:1.0f]
 
 @interface IDmeWebVerify () <WKNavigationDelegate, WKUIDelegate>
 
@@ -39,6 +37,7 @@
 @property (nonatomic, strong) UIViewController *presentingViewController;
 @property (nonatomic, strong) IDmeWebVerifyNavigationController *webNavigationController;
 @property (nonatomic, strong) WKWebView *webView;
+@property (nonatomic, strong) UIBarButtonItem *backButton;
 @property Boolean loadUser;
 
 @end
@@ -130,6 +129,9 @@
         callback(error);
         [weakself destroyWebNavigationController];
     };
+    connectionDelegate.onNavigationUpdate = ^() {
+        [weakself updateBackButton];
+    };
     connectionDelegate.redirectUri = self.redirectURI;
     [self clearWebViewCacheAndCookies];
     requestScope = scope;
@@ -159,6 +161,9 @@
     connectionDelegate.callback = ^(NSError* error){
         callback(error);
         [weakself destroyWebNavigationController];
+    };
+    connectionDelegate.onNavigationUpdate = ^() {
+        [weakself updateBackButton];
     };
     connectionDelegate.redirectUri = self.redirectURI;
     [self clearWebViewCacheAndCookies];
@@ -365,33 +370,43 @@
     // Initialize webViewController
     UIViewController *webViewController = [[UIViewController alloc] init];
     [webViewController.view setFrame:[_webView frame]];
-    [webViewController setTitle:@"Verify with ID.me"];
+    [webViewController setTitle:@"ID.me Wallet"];
     [webViewController.view addSubview:[self webView]];
+
+    NSBundle *bundle = [NSBundle bundleForClass:IDmeWebVerify.class];
 
     if (cancel) {
         // Initialize 'Cancel' UIBarButtonItem
 
-        UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Cancel"
+        UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/cancel.png"
+                                                                                                 inBundle:bundle
+                                                                            compatibleWithTraitCollection:nil]
                                                                                 style:UIBarButtonItemStyleDone
                                                                                target:cancelTarget
                                                                                action:@selector(cancelTapped:)];
-        NSDictionary *buttonAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorLightBlue};
-        [cancelBarButtonItem setTitleTextAttributes:buttonAttributes forState:UIControlStateNormal];
-        [cancelBarButtonItem setTintColor:kIDmeWebVerifyColorGreen];
-        [webViewController.navigationItem setLeftBarButtonItem:cancelBarButtonItem];
+        [webViewController.navigationItem setRightBarButtonItem:cancelBarButtonItem];
     }
+
+    //set up back button
+    self.backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/back.png"
+                                                                        inBundle:bundle
+                                                   compatibleWithTraitCollection:nil]
+                                                       style:UIBarButtonItemStylePlain
+                                                      target:self
+                                                      action:@selector(backTapped:)];
 
     // Initialize and customize UINavigationController with webViewController
     IDmeWebVerifyNavigationController *navigationController = [[IDmeWebVerifyNavigationController alloc] initWithRootViewController:webViewController];
-    NSDictionary *titleAttributes = @{NSForegroundColorAttributeName : kIDmeWebVerifyColorGreen};
+    NSDictionary *titleAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor]};
     [navigationController.navigationBar setTitleTextAttributes:titleAttributes];
-    [navigationController.navigationBar setTintColor:kIDmeWebVerifyColorLightBlue];
-    [navigationController.navigationBar setBarTintColor:kIDmeWebVerifyColorDarkBlue];
+    [navigationController.navigationBar setTintColor:[UIColor whiteColor]];
+    [navigationController.navigationBar setBarTintColor:kIDmeWebVerifyColorBlue];
+
     
     return navigationController;
 }
 
-- (void)cancelTapped:(id)sender{
+- (void)cancelTapped:(id)sender {
     if ([sender isMemberOfClass:[UIBarButtonItem class]]) {
         NSDictionary *details = @{ NSLocalizedDescriptionKey : IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED };
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN
@@ -405,6 +420,20 @@
     }
 
     [self destroyWebNavigationController];
+}
+
+- (void)backTapped:(id)sender {
+    if ([_webView canGoBack]) {
+        [_webView goBack];
+    }
+}
+
+- (void)updateBackButton {
+    if ([_webView canGoBack]) {
+        self.webNavigationController.topViewController.navigationItem.leftBarButtonItem = self.backButton;
+    } else {
+        self.webNavigationController.topViewController.navigationItem.leftBarButtonItem = nil;
+    }
 }
 
 - (void)destroyWebNavigationController {
@@ -447,6 +476,7 @@
 #pragma mark - UIWebViewDelegate Methods
 -(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation{
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    [self updateBackButton];
 }
 
 -(void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error{
@@ -520,7 +550,6 @@
 
     decisionHandler(WKNavigationActionPolicyAllow);
 }
-
 
 -(WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
 
