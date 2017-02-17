@@ -129,7 +129,7 @@
         callback(error);
         [weakself destroyWebNavigationController];
     };
-    connectionDelegate.onNavigationUpdate = ^(){
+    connectionDelegate.onNavigationUpdate = ^() {
         [weakself updateBackButton];
     };
     connectionDelegate.redirectUri = self.redirectURI;
@@ -162,7 +162,7 @@
         callback(error);
         [weakself destroyWebNavigationController];
     };
-    connectionDelegate.onNavigationUpdate = ^(){
+    connectionDelegate.onNavigationUpdate = ^() {
         [weakself updateBackButton];
     };
     connectionDelegate.redirectUri = self.redirectURI;
