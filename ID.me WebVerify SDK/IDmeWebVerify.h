@@ -69,7 +69,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
     IDmeWebVerifyLoginTypeSignIn
 };
 
-/// THe ID.me WebVerify Singleton method
+/// The ID.me WebVerify Singleton method
 + (IDmeWebVerify * _Nonnull)sharedInstance;
 
 /// Specifies if cancel button will be shown in the webView or not. Default is YES.
