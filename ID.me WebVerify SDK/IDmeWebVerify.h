@@ -65,13 +65,14 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
 /// This enum defines the desired action, either sign-in or sign-up
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
 {
-    IDmeWebVerifyAffiliationSignUp,
-    IDmeWebVerifyAffiliationSignIn
+    IDmeWebVerifyLoginTypeSignUp,
+    IDmeWebVerifyLoginTypeSignIn
 };
 
 /// THe ID.me WebVerify Singleton method
 + (IDmeWebVerify * _Nonnull)sharedInstance;
 
+/// Specifies if cancel button will be shown in the webView or not. Default is YES.
 @property (nonatomic) Boolean showCancelButton;
 
 /**

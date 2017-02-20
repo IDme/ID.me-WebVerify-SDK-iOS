@@ -645,10 +645,10 @@
 
 - (NSString * _Nonnull)stringForLoginType:(IDmeWebVerifyLoginType)type {
     switch (type) {
-        case IDmeWebVerifyAffiliationSignUp:
+        case IDmeWebVerifyLoginTypeSignUp:
             return @"signup";
             break;
-        case IDmeWebVerifyAffiliationSignIn:
+        case IDmeWebVerifyLoginTypeSignIn:
             return @"signin";
             break;
     }
