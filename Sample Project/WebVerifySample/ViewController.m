@@ -112,7 +112,6 @@
 
     [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
                                                          scope:scope
-                                                    withCancel:YES
                                                    withResults:^(NSDictionary *userProfile, NSError *error) {
                                                        [self resultsWithUserProfile:userProfile andError:error];
                                                    }];
