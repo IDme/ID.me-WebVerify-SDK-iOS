@@ -15,6 +15,7 @@
 /// API Constants (Production)
 #define IDME_WEB_VERIFY_BASE_URL                        @"https://api.id.me/"
 #define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
+#define IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN                IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@&op=%@"
 #define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
 #define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
 #define IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI        IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&access_token=%@"
@@ -65,6 +66,7 @@
     if (self) {
         _keychainData = [[IDmeWebVerifyKeychainData alloc] init];
         connectionDelegate = [[ConnectionDelegate alloc] init];
+        _showCancelButton = YES;
         [self clearWebViewCacheAndCookies];
     }
     
@@ -80,30 +82,25 @@
 #pragma mark - Authorization Methods (Public)
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                             scope:(NSString *)scope
-                        withCancel:(BOOL)cancel
                       withResults:(IDmeVerifyWebVerifyProfileResults)webVerificationResults {
     [self setWebVerificationProfileResults:webVerificationResults];
     [self verifyUserInViewController: externalViewController
                                scope: scope
-                          withCancel:(BOOL)cancel
                             loadUser: YES];
 }
 
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                              scope:(NSString *)scope
-                        withCancel:(BOOL)cancel
                    withTokenResult:(IDmeVerifyWebVerifyTokenResults)webVerificationResults {
     [self setWebVerificationTokenResults:webVerificationResults];
     [self verifyUserInViewController: externalViewController
                                scope: scope
-                          withCancel:(BOOL)cancel
                             loadUser: NO];
 }
 
 #pragma mark - Authorization Methods (Private)
 - (void)verifyUserInViewController:(UIViewController *)externalViewController
                              scope:(NSString *)scope
-                        withCancel:(BOOL)cancel
                           loadUser:(Boolean)loadUser {
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
     _loadUser = loadUser;
@@ -111,11 +108,31 @@
     requestScope = scope;
     [self setPresentingViewController:externalViewController];
     __weak IDmeWebVerify *weakself = self;
-    [self launchWebNavigationControllerWithDelegate:self showCancel:cancel completion:^{
+    [self launchWebNavigationControllerWithDelegate:self completion:^{
 
         // GET Access Token via UIWebView flow
         [weakself loadWebViewWithRequest:[NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, _clientID, _redirectURI, requestScope]];
         
+    }];
+}
+
+-(void)registerOrLoginInViewController:(UIViewController *)externalViewController
+                                 scope:(NSString *)scope
+                             loginType:(IDmeWebVerifyLoginType)loginType
+                       withTokenResult:(IDmeVerifyWebVerifyTokenResults)webVerificationResults {
+    NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
+    [self setWebVerificationTokenResults:webVerificationResults];
+    [self clearWebViewCacheAndCookies];
+    _loadUser = NO;
+    requestScope = scope;
+    [self setPresentingViewController:externalViewController];
+    __weak IDmeWebVerify *weakself = self;
+    [self launchWebNavigationControllerWithDelegate:self completion:^{
+
+        // GET Access Token via UIWebView flow
+        [weakself loadWebViewWithRequest:[NSString stringWithFormat:IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN,
+                                          _clientID, _redirectURI, requestScope, [self stringForLoginType:loginType]]];
+
     }];
 }
 
@@ -137,7 +154,7 @@
     requestScope = scope;
     connectionType = type;
     [self setPresentingViewController:viewController];
-    [self launchWebNavigationControllerWithDelegate:connectionDelegate showCancel:YES completion:^{
+    [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
 
         // Register Connection via UIWebView flow
         [weakself getAccessTokenWithScope:requestScope
@@ -170,7 +187,7 @@
     requestScope = scope;
     affiliationType = type;
     [self setPresentingViewController:viewController];
-    [self launchWebNavigationControllerWithDelegate:connectionDelegate showCancel:YES completion:^{
+    [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
 
         // Register Affiliation via UIWebView flow
         [weakself getAccessTokenWithScope:requestScope
@@ -288,13 +305,13 @@
 }
 
 #pragma mark - Web view Methods
-- (void)launchWebNavigationControllerWithDelegate:(id<WKNavigationDelegate, WKUIDelegate>)delegate showCancel:(BOOL)cancel completion:(void (^ __nullable)(void))completion {
+- (void)launchWebNavigationControllerWithDelegate:(id<WKNavigationDelegate, WKUIDelegate>)delegate completion:(void (^ __nullable)(void))completion {
 
     // Initialize _webView
     _webView = [self createWebViewWithDelegate:delegate];
 
     // Initialize _webNavigationController
-    _webNavigationController = [self createWebNavigationController: delegate showCancel: cancel];
+    _webNavigationController = [self createWebNavigationController: delegate];
 
     // Present _webNavigationController
     [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
@@ -366,7 +383,7 @@
     }
 }
 
-- (IDmeWebVerifyNavigationController * _Nonnull)createWebNavigationController:(id)cancelTarget showCancel:(BOOL)cancel {
+- (IDmeWebVerifyNavigationController * _Nonnull)createWebNavigationController:(id)cancelTarget {
     // Initialize webViewController
     UIViewController *webViewController = [[UIViewController alloc] init];
     [webViewController.view setFrame:[_webView frame]];
@@ -375,7 +392,7 @@
 
     NSBundle *bundle = [NSBundle bundleForClass:IDmeWebVerify.class];
 
-    if (cancel) {
+    if (self.showCancelButton) {
         // Initialize 'Cancel' UIBarButtonItem
 
         UIBarButtonItem *cancelBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"IDmeWebVerify.bundle/cancel.png"
@@ -622,6 +639,17 @@
             break;
         case IDmeWebVerifyAffiliationTeacher:
             return @"teacher";
+            break;
+    }
+}
+
+- (NSString * _Nonnull)stringForLoginType:(IDmeWebVerifyLoginType)type {
+    switch (type) {
+        case IDmeWebVerifyLoginTypeSignUp:
+            return @"signup";
+            break;
+        case IDmeWebVerifyLoginTypeSignIn:
+            return @"signin";
             break;
     }
 }
