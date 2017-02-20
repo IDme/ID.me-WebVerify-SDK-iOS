@@ -62,8 +62,17 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
     IDmeWebVerifyAffiliationTeacher
 };
 
+/// This enum defines the desired action, either sign-in or sign-up
+typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
+{
+    IDmeWebVerifyAffiliationSignUp,
+    IDmeWebVerifyAffiliationSignIn
+};
+
 /// THe ID.me WebVerify Singleton method
 + (IDmeWebVerify * _Nonnull)sharedInstance;
+
+@property (nonatomic) Boolean showCancelButton;
 
 /**
  @param clientID The clientID provided by ID.me when registering the app at @b http://developer.id.me
@@ -78,7 +87,6 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
  */
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
                              scope:(NSString * _Nonnull)scope
-                        withCancel:(BOOL)cancel
                        withResults:(IDmeVerifyWebVerifyProfileResults _Nonnull)webVerificationResults;
 
 /**
@@ -86,11 +94,21 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
  @param scope The type of group verification that should be presented.
  @param webVerificationResults A block that returns an NSString object representing a valid access token or an NSError object.
  */
-
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
                              scope:(NSString * _Nonnull)scope
-                        withCancel:(BOOL)cancel
                    withTokenResult:(IDmeVerifyWebVerifyTokenResults _Nonnull)webVerificationResults;
+
+/**
+ This function should be used if it is known if the user wants to sign in or sign up. Otherwise works the same as verifyUserInViewController:scope:webVerificationResults
+ @param externalViewController The viewController which will present the modal navigationController
+ @param scope The type of group verification that should be presented.
+ @param loginType The type of operation desired (sign in or sign up)
+ @param webVerificationResults A block that returns an NSString object representing a valid access token or an NSError object.
+ */
+- (void)registerOrLoginInViewController:(UIViewController * _Nonnull)externalViewController
+                                  scope:(NSString * _Nonnull)scope
+                              loginType:(IDmeWebVerifyLoginType)loginType
+                        withTokenResult:(IDmeVerifyWebVerifyTokenResults _Nonnull)webVerificationResults;
 
 /**
  Returns the User profile with the stored access token. 
