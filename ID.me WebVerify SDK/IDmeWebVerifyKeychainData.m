@@ -11,6 +11,7 @@
 /// Keychain Constants
 #define IDME_KEYCHAIN_DATA_ACCOUNT              @"IDME_KEYCHAIN_DATA"
 #define IDME_EXPIRATION_DATE                    @"IDME_EXPIRATION_DATE"
+#define IDME_REFRESH_EXPIRATION_DATE            @"IDME_REFRESH_EXPIRATION_DATE"
 #define IDME_REFRESH_TOKEN                      @"IDME_REFRESH_TOKEN"
 #define IDME_ACCESS_TOKEN                       @"IDME_ACCESS_TOKEN"
 #define IDME_SCOPE                              @"IDME_SCOPE"
@@ -71,17 +72,14 @@
 
 #pragma mark Getters and Setters
 
--(void)setToken:(NSString * _Nonnull)accessToken expirationDate:(NSDate * _Nonnull)date
-   refreshToken:(NSString * _Nullable)refreshToken forScope:(NSString * _Nonnull)scope {
+-(void)setToken:(NSString * _Nonnull)accessToken expirationDate:(NSDate * _Nonnull)expirationDate
+   refreshToken:(NSString * _Nonnull)refreshToken refreshExpDate:(NSDate * _Nonnull)refreshExpDate
+       forScope:(NSString * _Nonnull)scope {
 
-    NSString* refresh = refreshToken;
-    if (!refreshToken && self.tokensByScope[scope]) {
-        refresh = self.tokensByScope[scope][IDME_REFRESH_TOKEN];
-    }
-
-    self.tokensByScope[scope] = @{IDME_EXPIRATION_DATE: [_dateFormatter stringFromDate: date],
-                                  IDME_REFRESH_TOKEN: refresh ?: @"",
-                                  IDME_ACCESS_TOKEN: accessToken};
+    self.tokensByScope[scope] = @{IDME_EXPIRATION_DATE: [_dateFormatter stringFromDate: expirationDate],
+                                  IDME_REFRESH_TOKEN: refreshToken,
+                                  IDME_ACCESS_TOKEN: accessToken,
+                                  IDME_REFRESH_EXPIRATION_DATE: [_dateFormatter stringFromDate: refreshExpDate]};
     self.latestScope = scope;
     [self persist];
 }
@@ -100,6 +98,10 @@
 
 -(NSDate * _Nullable)expirationDateForScope:(NSString * _Nonnull)scope{
     return  [_dateFormatter dateFromString: self.tokensByScope[scope][IDME_EXPIRATION_DATE]];
+}
+
+-(NSDate * _Nullable)refreshExpirationDateForScope:(NSString * _Nonnull)scope{
+    return  [_dateFormatter dateFromString: self.tokensByScope[scope][IDME_REFRESH_EXPIRATION_DATE]];
 }
 
 @end

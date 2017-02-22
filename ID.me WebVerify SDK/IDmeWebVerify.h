@@ -9,6 +9,9 @@
 #import <UIKit/UIKit.h>
 
 #define IDME_WEB_VERIFY_VERIFICATION_WAS_CANCELED    @"The user exited the modal navigationController before being verified."
+#define IDME_WEB_VERIFY_VERIFICATION_FAILED          @"Authorization process failed."
+#define IDME_WEB_VERIFY_REFRESH_TOKEN_FAILED         @"Refreshing the access token failed."
+#define IDME_WEB_VERIFY_REFRESH_TOKEN_EXPIRED        @"The refresh token has expired."
 #define IDME_WEB_VERIFY_ERROR_DOMAIN                 @"ID.me Web Verify Error Domain"
 
 
@@ -38,6 +41,12 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
 
     /// Error thrown when there is no valid token or when a response status code is 401.
     IDmeWebVerifyErrorCodeNotAuthorized,
+
+    /// Error thrown when there is an error refreshing the requested access token
+    IDmeWebVerifyErrorCodeRefreshTokenFailed,
+
+    /// Error thrown when the refresh token has expired
+    IDmeWebVerifyErrorCodeRefreshTokenExpired,
 
     /// Error thrown for not implemented features like token refreshing.
     IDmeWebVerifyErrorCodeNotImplemented
@@ -79,7 +88,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
  @param clientID The clientID provided by ID.me when registering the app at @b http://developer.id.me
  @param redierectURI The redirectURI provided to ID.me when registering your app at @b http://developer.id.me
  */
-+ (void)initializeWithClientID:(NSString * _Nonnull)clientID redirectURI:(NSString * _Nonnull)redirectURI;
++ (void)initializeWithClientID:(NSString * _Nonnull)clientID clientSecret:(NSString * _Nonnull)clientSecret redirectURI:(NSString * _Nonnull)redirectURI;
 
 /**
  @param externalViewController The viewController which will present the modal navigationController
