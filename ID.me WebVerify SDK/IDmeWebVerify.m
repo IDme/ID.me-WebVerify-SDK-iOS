@@ -15,21 +15,20 @@
 /// API Constants (Production)
 #define IDME_WEB_VERIFY_BASE_URL                        @"https://api.id.me/"
 #define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@"
-#define IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN                IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&op=%@"
-#define IDME_WEB_VERIFY_REFRESH_CODE_URL                IDME_WEB_VERIFY_BASE_URL @"oauth/token"
 #define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
+#define IDME_WEB_VERIFY_REFRESH_CODE_URL                IDME_WEB_VERIFY_BASE_URL @"oauth/token"
 #define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
 #define IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI        IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&access_token=%@"
+#define IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN                IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&op=%@"
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
-#define IDME_WEB_VERIFY_REFRESH_TOKEN_PARAM             @"refresh_token"
+#define IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM         @"error_description"
 #define IDME_WEB_VERIFY_EXPIRATION_PARAM                @"expires_in"
 #define IDME_WEB_VERIFY_REFRESH_EXPIRATION_PARAM        @"refresh_expires_in"
-#define IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM         @"error_description"
+#define IDME_WEB_VERIFY_REFRESH_TOKEN_PARAM             @"refresh_token"
 
 // HTTP methods
-#define GET_METHOD         @"GET"
 #define POST_METHOD        @"POST"
 
 /// Color Constants
@@ -289,15 +288,15 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
         return;
     }
 
-    NSString* token = [self.keychainData accessTokenForScope:scope];
-    NSDate* expiration = [self.keychainData expirationDateForScope:scope];
+    NSString* token = [self.keychainData accessTokenForScope:latestScope];
+    NSDate* expiration = [self.keychainData expirationDateForScope:latestScope];
 
     if (token) {
         // check if token has expired
         NSDate* now = [[NSDate alloc] init];
         if ([now compare:expiration] != NSOrderedAscending) {
             // token has expired
-            [self refreshTokenForScope:scope callback:callback];
+            [self refreshTokenForScope:latestScope callback:callback];
         } else {
             callback(token, nil);
         }
@@ -328,7 +327,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                                                                                    options:NSJSONReadingMutableContainers
                                                                                      error:&jsonError];
                               if (json && !error) {
-                                  [weakself saveDataFromJson:json];
+                                  [weakself saveKeychainDataFromJson:json scope:scope];
                                   NSString * accessToken = [json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
                                   if (accessToken) {
                                       callback(accessToken, nil);
@@ -579,7 +578,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                                                                                          error:&jsonError];
 
                                   if (json) {
-                                      [weakself saveDataFromJson:json];
+                                      [weakself saveKeychainDataFromJson:json scope:requestScope];
                                       if (_loadUser == YES)
                                           [weakself getUserProfileWithScope:requestScope result:_webVerificationProfileResults];
                                       else {
@@ -643,7 +642,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 }
 
 #pragma mark - Keychain access
-- (void)saveDataFromJson:(NSDictionary* _Nonnull)json {
+- (void)saveKeychainDataFromJson:(NSDictionary* _Nonnull)json scope:(NSString* _Nonnull)scope {
     // Extract 'access_token' from URL query parameters that are separated by '&'
     NSString *accessToken = [json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
     NSString *refreshToken = [json objectForKey:IDME_WEB_VERIFY_REFRESH_TOKEN_PARAM];
@@ -652,7 +651,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 
     NSDate* expirationDate = [NSDate dateWithTimeIntervalSinceNow:[[NSNumber numberWithInt:[expiresIn intValue]] doubleValue]];
     NSDate* refreshExpirationDate = [NSDate dateWithTimeIntervalSinceNow:[[NSNumber numberWithInt:[refreshExpiresIn intValue]] doubleValue]];
-    [self.keychainData setToken:accessToken expirationDate:expirationDate refreshToken:refreshToken refreshExpDate:refreshExpirationDate forScope:requestScope];
+    [self.keychainData setToken:accessToken expirationDate:expirationDate refreshToken:refreshToken refreshExpDate:refreshExpirationDate forScope:scope];
 }
 
 #pragma mark - Accessor Methods
