@@ -14,25 +14,34 @@
 
 /// API Constants (Production)
 #define IDME_WEB_VERIFY_BASE_URL                        @"https://api.id.me/"
-#define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@"
-#define IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN                IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=token&scope=%@&op=%@"
+#define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@"
 #define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
+#define IDME_WEB_VERIFY_REFRESH_CODE_URL                IDME_WEB_VERIFY_BASE_URL @"oauth/token"
 #define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
 #define IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI        IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&access_token=%@"
+#define IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN                IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&op=%@"
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
-#define IDME_WEB_VERIFY_EXPIRATION_PARAM                @"expires_in"
 #define IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM         @"error_description"
+#define IDME_WEB_VERIFY_EXPIRATION_PARAM                @"expires_in"
+#define IDME_WEB_VERIFY_REFRESH_EXPIRATION_PARAM        @"refresh_expires_in"
+#define IDME_WEB_VERIFY_REFRESH_TOKEN_PARAM             @"refresh_token"
+
+// HTTP methods
+#define POST_METHOD        @"POST"
 
 /// Color Constants
 #define kIDmeWebVerifyColorBlue                     [UIColor colorWithRed:48.0f/255.0f green:160.0f/255.0f blue:224.0f/255.0f alpha:1.0f]
 
 @interface IDmeWebVerify () <WKNavigationDelegate, WKUIDelegate>
 
+typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error);
+
 @property (nonatomic, copy) IDmeVerifyWebVerifyProfileResults webVerificationProfileResults;
 @property (nonatomic, copy) IDmeVerifyWebVerifyTokenResults webVerificationTokenResults;
 @property (nonatomic, copy) NSString *clientID;
+@property (nonatomic, copy) NSString *clientSecret;
 @property (nonatomic, copy) NSString *redirectURI;
 @property (nonatomic, strong) IDmeWebVerifyKeychainData *keychainData;
 @property (nonatomic, strong) UIViewController *presentingViewController;
@@ -73,9 +82,10 @@
     return self;
 }
 
-+ (void)initializeWithClientID:(NSString * _Nonnull)clientID redirectURI:(NSString * _Nonnull)redirectURI {
++ (void)initializeWithClientID:(NSString * _Nonnull)clientID clientSecret:(NSString * _Nonnull)clientSecret redirectURI:(NSString * _Nonnull)redirectURI {
     NSAssert([IDmeWebVerify sharedInstance].clientID == nil, @"You cannot initialize IDmeWebVerify more than once.");
     [[IDmeWebVerify sharedInstance] setClientID:clientID];
+    [[IDmeWebVerify sharedInstance] setClientSecret:clientSecret];
     [[IDmeWebVerify sharedInstance] setRedirectURI:redirectURI];
 }
 
@@ -259,41 +269,34 @@
     [self.keychainData clean];
 }
 
-- (void)getAccessTokenWithScope:(NSString* _Nullable)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback{
+- (void)getAccessTokenWithScope:(NSString* _Nullable)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback {
 
-    if (force) {
-        // TODO: refresh token
-        callback(nil, [self notImplementedErrorWithUserInfo:nil]);
-        return;
-    }
-
-    NSString* token;
-    NSDate* expiration;
-    if (scope) {
-        // get the token for the specified scope
-        token = [self.keychainData accessTokenForScope:scope];
-        expiration = [self.keychainData expirationDateForScope:scope];
-
-    } else {
-        // get last used token
-        NSString* latestScope = [self.keychainData getLatestUsedScope];
+    NSString* latestScope = scope;
+    if (!latestScope) {
+        // get last used scope
+         latestScope = [self.keychainData getLatestUsedScope];
 
         if (!latestScope) {
-            // no token has been requested yet
+            // no token has been requested yet (and no scope provided)
             callback(nil, [self noSuchScopeErrorWithUserInfo:nil]);
             return;
         }
-
-        token = [self.keychainData accessTokenForScope:latestScope];
-        expiration = [self.keychainData expirationDateForScope:latestScope];
     }
+
+    if (force) {
+        [self refreshTokenForScope:latestScope callback:callback];
+        return;
+    }
+
+    NSString* token = [self.keychainData accessTokenForScope:latestScope];
+    NSDate* expiration = [self.keychainData expirationDateForScope:latestScope];
 
     if (token) {
         // check if token has expired
         NSDate* now = [[NSDate alloc] init];
         if ([now compare:expiration] != NSOrderedAscending) {
-            // TODO: refresh token
-            callback(nil, [self notAuthorizedErrorWithUserInfo:nil]);
+            // token has expired
+            [self refreshTokenForScope:latestScope callback:callback];
         } else {
             callback(token, nil);
         }
@@ -302,6 +305,39 @@
         callback(nil, [self noSuchScopeErrorWithUserInfo:nil]);
     }
 
+}
+
+- (void)refreshTokenForScope:(NSString* _Nonnull)scope callback:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback {
+
+    NSString* refreshToken = [self.keychainData refreshTokenForScope:scope];
+    NSDate* expiration = [self.keychainData refreshExpirationDateForScope:scope];
+
+    NSDate* now = [[NSDate alloc] init];
+    if ([now compare:expiration] != NSOrderedAscending) {
+        // refresh token has expired
+        callback(nil, [self refreshTokenExpiredErrorWithUserInfo:@{NSLocalizedDescriptionKey: IDME_WEB_VERIFY_REFRESH_TOKEN_EXPIRED}]);
+    } else {
+        __weak IDmeWebVerify *weakself = self;
+        [self makePostRequestWithUrl:IDME_WEB_VERIFY_REFRESH_CODE_URL
+                          parameters:[NSString stringWithFormat:@"client_id=%@&client_secret=%@&redirect_uri=%@&refresh_token=%@&grant_type=refresh_token",
+                                      _clientID, _clientSecret, _redirectURI, refreshToken]
+                          completion:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                              NSError *jsonError;
+                              NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data
+                                                                                   options:NSJSONReadingMutableContainers
+                                                                                     error:&jsonError];
+                              if (json && !error) {
+                                  [weakself saveTokenDataFromJson:json scope:scope];
+                                  NSString * accessToken = [json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
+                                  if (accessToken) {
+                                      callback(accessToken, nil);
+                                      return;
+                                  }
+                              }
+
+                              callback(nil, [weakself refreshTokenErrorWithUserInfo:@{NSLocalizedDescriptionKey: IDME_WEB_VERIFY_REFRESH_TOKEN_FAILED}]);
+                          }];
+    }
 }
 
 #pragma mark - Web view Methods
@@ -521,48 +557,58 @@
          since it allows us to split the return string by components separated by '&'.
          */
         query = [query stringByReplacingOccurrencesOfString:@"#" withString:@"&"];
+        query = [query stringByReplacingOccurrencesOfString:@"?" withString:@"&"];
 
     }
 
     NSDictionary *parameters = [self parseQueryParametersFromURL:query];
 
-    if ([parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM]) {
+    if ([query hasPrefix:_redirectURI]) {
 
-        // Extract 'access_token' from URL query parameters that are separated by '&'
-        NSString *accessToken = [parameters objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
-        NSString *expiresIn = [parameters objectForKey:IDME_WEB_VERIFY_EXPIRATION_PARAM];
+        if ([parameters objectForKey:@"code"]) {
 
+            __weak IDmeWebVerify *weakself = self;
+            [self makePostRequestWithUrl:IDME_WEB_VERIFY_REFRESH_CODE_URL
+                              parameters:[NSString stringWithFormat:@"client_id=%@&client_secret=%@&redirect_uri=%@&code=%@&grant_type=authorization_code",
+                                          _clientID, _clientSecret, _redirectURI, [parameters objectForKey:@"code"]]
+                              completion:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                                  NSError *jsonError;
+                                  NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data
+                                                                                       options:NSJSONReadingMutableContainers
+                                                                                         error:&jsonError];
 
-        //TODO: save refresh token
-        NSDate* expirationDate = [NSDate dateWithTimeIntervalSinceNow:[[NSNumber numberWithInt:[expiresIn intValue]] doubleValue]];
-        [self.keychainData setToken:accessToken expirationDate:expirationDate refreshToken:nil forScope:requestScope];
+                                  if (json) {
+                                      [weakself saveTokenDataFromJson:json scope:requestScope];
+                                      if (_loadUser == YES)
+                                          [weakself getUserProfileWithScope:requestScope result:_webVerificationProfileResults];
+                                      else {
+                                          _webVerificationTokenResults([json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM], nil);
+                                          [weakself destroyWebNavigationController];
+                                      }
+                                  } else {
+                                      _webVerificationTokenResults(nil, [weakself notAuthorizedErrorWithUserInfo:@{NSLocalizedDescriptionKey: IDME_WEB_VERIFY_VERIFICATION_FAILED}]);
+                                  }
+                              }];
+            decisionHandler(WKNavigationActionPolicyCancel);
+            return;
 
-        if (_loadUser == YES)
-            [self getUserProfileWithScope:requestScope result:_webVerificationProfileResults];
-        else {
-            _webVerificationTokenResults(accessToken, nil);
+        } else if ([parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM]) {
+
+            // Extract 'error_description' from URL query parameters that are separated by '&'
+            NSString *errorDescription = [parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM];
+            errorDescription = [errorDescription stringByReplacingOccurrencesOfString:@"+" withString:@" "];
+            NSDictionary *details = @{ NSLocalizedDescriptionKey : errorDescription };
+            NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
+            if (_webVerificationTokenResults) {
+                _webVerificationTokenResults(nil, error);
+            } else {
+                _webVerificationProfileResults(nil, error);
+            }
             [self destroyWebNavigationController];
+
+            decisionHandler(WKNavigationActionPolicyCancel);
+            return;
         }
-
-        decisionHandler(WKNavigationActionPolicyCancel);
-        return;
-
-    } else if ([parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM]) {
-
-        // Extract 'error_description' from URL query parameters that are separated by '&'
-        NSString *errorDescription = [parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM];
-        errorDescription = [errorDescription stringByReplacingOccurrencesOfString:@"+" withString:@" "];
-        NSDictionary *details = @{ NSLocalizedDescriptionKey : errorDescription };
-        NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
-        if (_webVerificationTokenResults) {
-            _webVerificationTokenResults(nil, error);
-        } else {
-            _webVerificationProfileResults(nil, error);
-        }
-        [self destroyWebNavigationController];
-
-        decisionHandler(WKNavigationActionPolicyCancel);
-        return;
     }
 
     decisionHandler(WKNavigationActionPolicyAllow);
@@ -575,6 +621,37 @@
     }
 
     return nil;
+}
+
+#pragma mark - Networking
+- (void)makePostRequestWithUrl:(NSString *_Nonnull)urlString parameters:(NSString* _Nonnull)parameters completion:(RequestCompletion)completion {
+
+    NSData *parameterData = [parameters dataUsingEncoding:NSUTF8StringEncoding];
+    NSURL *url = [NSURL URLWithString:urlString];
+
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+    [request addValue: @"application/x-www-form-urlencoded; charset=utf-8" forHTTPHeaderField:@"Content-Type"];
+    [request setHTTPMethod:POST_METHOD];
+    [request setHTTPBody:parameterData];
+
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *task = [session dataTaskWithRequest:request
+                                            completionHandler:completion];
+    
+    [task resume];
+}
+
+#pragma mark - Keychain access
+- (void)saveTokenDataFromJson:(NSDictionary* _Nonnull)json scope:(NSString* _Nonnull)scope {
+    // Extract 'access_token' from URL query parameters that are separated by '&'
+    NSString *accessToken = [json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
+    NSString *refreshToken = [json objectForKey:IDME_WEB_VERIFY_REFRESH_TOKEN_PARAM];
+    NSString *expiresIn = [json objectForKey:IDME_WEB_VERIFY_EXPIRATION_PARAM];
+    NSString *refreshExpiresIn = [json objectForKey:IDME_WEB_VERIFY_REFRESH_EXPIRATION_PARAM];
+
+    NSDate* expirationDate = [NSDate dateWithTimeIntervalSinceNow:[[NSNumber numberWithInt:[expiresIn intValue]] doubleValue]];
+    NSDate* refreshExpirationDate = [NSDate dateWithTimeIntervalSinceNow:[[NSNumber numberWithInt:[refreshExpiresIn intValue]] doubleValue]];
+    [self.keychainData setToken:accessToken expirationDate:expirationDate refreshToken:refreshToken refreshExpDate:refreshExpirationDate forScope:scope];
 }
 
 #pragma mark - Accessor Methods
@@ -597,6 +674,14 @@
 
 - (NSError * _Nonnull)notAuthorizedErrorWithUserInfo:(NSDictionary* _Nullable)userInfo {
     return [self errorWithCode:IDmeWebVerifyErrorCodeNotAuthorized userInfo:userInfo];
+}
+
+- (NSError * _Nonnull)refreshTokenErrorWithUserInfo:(NSDictionary* _Nullable)userInfo {
+    return [self errorWithCode:IDmeWebVerifyErrorCodeRefreshTokenFailed userInfo:userInfo];
+}
+
+- (NSError * _Nonnull)refreshTokenExpiredErrorWithUserInfo:(NSDictionary* _Nullable)userInfo {
+    return [self errorWithCode:IDmeWebVerifyErrorCodeRefreshTokenExpired userInfo:userInfo];
 }
 
 - (NSError * _Nonnull)errorWithCode:(IDmeWebVerifyErrorCode)code  userInfo:(NSDictionary* _Nullable)userInfo {
