@@ -327,7 +327,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                                                                                    options:NSJSONReadingMutableContainers
                                                                                      error:&jsonError];
                               if (json && !error) {
-                                  [weakself saveKeychainDataFromJson:json scope:scope];
+                                  [weakself saveTokenDataFromJson:json scope:scope];
                                   NSString * accessToken = [json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
                                   if (accessToken) {
                                       callback(accessToken, nil);
@@ -578,7 +578,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                                                                                          error:&jsonError];
 
                                   if (json) {
-                                      [weakself saveKeychainDataFromJson:json scope:requestScope];
+                                      [weakself saveTokenDataFromJson:json scope:requestScope];
                                       if (_loadUser == YES)
                                           [weakself getUserProfileWithScope:requestScope result:_webVerificationProfileResults];
                                       else {
@@ -642,7 +642,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 }
 
 #pragma mark - Keychain access
-- (void)saveKeychainDataFromJson:(NSDictionary* _Nonnull)json scope:(NSString* _Nonnull)scope {
+- (void)saveTokenDataFromJson:(NSDictionary* _Nonnull)json scope:(NSString* _Nonnull)scope {
     // Extract 'access_token' from URL query parameters that are separated by '&'
     NSString *accessToken = [json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
     NSString *refreshToken = [json objectForKey:IDME_WEB_VERIFY_REFRESH_TOKEN_PARAM];
