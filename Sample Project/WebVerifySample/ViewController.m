@@ -15,6 +15,7 @@
 
 @implementation ViewController {
     NSString *clientID;
+    NSString *clientSecret;
     NSString *redirectURL;
     NSString *scope;
 }
@@ -22,12 +23,13 @@
 #pragma mark - View Lifecycle
 - (void)viewDidLoad {
 
-    clientID    = @"<your_client_id>";
+    clientID = @"<your_client_id>";
+    clientSecret = @"<your_client_secret>";
     redirectURL = @"<your_url>";
     scope = @"<your_handle>";
 
     [super viewDidLoad];
-    [IDmeWebVerify initializeWithClientID:clientID redirectURI:redirectURL];
+    [IDmeWebVerify initializeWithClientID:clientID clientSecret: clientSecret redirectURI:redirectURL];
     [self setupSubviews];
 }
 
