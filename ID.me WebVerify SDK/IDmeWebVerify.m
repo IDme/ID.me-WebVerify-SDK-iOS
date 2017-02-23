@@ -57,6 +57,8 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     IDmeWebVerifyConnection connectionType;
     IDmeWebVerifyAffiliation affiliationType;
     ConnectionDelegate* connectionDelegate;
+    NSMutableArray* pendingRefreshes;
+    BOOL isRefreshing;
 }
 
 #pragma mark - Initialization Methods
@@ -76,6 +78,8 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
         _keychainData = [[IDmeWebVerifyKeychainData alloc] init];
         connectionDelegate = [[ConnectionDelegate alloc] init];
         _showCancelButton = YES;
+        isRefreshing = NO;
+        pendingRefreshes = [[NSMutableArray alloc] init];
         [self clearWebViewCacheAndCookies];
     }
     
@@ -309,34 +313,52 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 
 - (void)refreshTokenForScope:(NSString* _Nonnull)scope callback:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback {
 
-    NSString* refreshToken = [self.keychainData refreshTokenForScope:scope];
-    NSDate* expiration = [self.keychainData refreshExpirationDateForScope:scope];
+    @synchronized (pendingRefreshes) {
+        [pendingRefreshes insertObject:callback atIndex:[pendingRefreshes count]];
+        if (!isRefreshing) {
+            isRefreshing = YES;
+            NSString* refreshToken = [self.keychainData refreshTokenForScope:scope];
+            NSDate* expiration = [self.keychainData refreshExpirationDateForScope:scope];
 
-    NSDate* now = [[NSDate alloc] init];
-    if ([now compare:expiration] != NSOrderedAscending) {
-        // refresh token has expired
-        callback(nil, [self refreshTokenExpiredErrorWithUserInfo:@{NSLocalizedDescriptionKey: IDME_WEB_VERIFY_REFRESH_TOKEN_EXPIRED}]);
-    } else {
-        __weak IDmeWebVerify *weakself = self;
-        [self makePostRequestWithUrl:IDME_WEB_VERIFY_REFRESH_CODE_URL
-                          parameters:[NSString stringWithFormat:@"client_id=%@&client_secret=%@&redirect_uri=%@&refresh_token=%@&grant_type=refresh_token",
-                                      _clientID, _clientSecret, _redirectURI, refreshToken]
-                          completion:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-                              NSError *jsonError;
-                              NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data
-                                                                                   options:NSJSONReadingMutableContainers
-                                                                                     error:&jsonError];
-                              if (json && !error) {
-                                  [weakself saveTokenDataFromJson:json scope:scope];
-                                  NSString * accessToken = [json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
-                                  if (accessToken) {
-                                      callback(accessToken, nil);
-                                      return;
-                                  }
-                              }
+            NSDate* now = [[NSDate alloc] init];
+            if ([now compare:expiration] != NSOrderedAscending) {
+                // refresh token has expired
+                [pendingRefreshes enumerateObjectsUsingBlock:^(id  _Nonnull callback, NSUInteger idx, BOOL * _Nonnull stop) {
+                    ((IDmeVerifyWebVerifyTokenResults) callback)(nil, [self refreshTokenExpiredErrorWithUserInfo:@{NSLocalizedDescriptionKey: IDME_WEB_VERIFY_REFRESH_TOKEN_EXPIRED}]);
+                }];
+                [pendingRefreshes removeAllObjects];
 
-                              callback(nil, [weakself refreshTokenErrorWithUserInfo:@{NSLocalizedDescriptionKey: IDME_WEB_VERIFY_REFRESH_TOKEN_FAILED}]);
-                          }];
+            } else {
+                __weak IDmeWebVerify *weakself = self;
+                [self makePostRequestWithUrl:IDME_WEB_VERIFY_REFRESH_CODE_URL
+                                  parameters:[NSString stringWithFormat:@"client_id=%@&client_secret=%@&redirect_uri=%@&refresh_token=%@&grant_type=refresh_token",
+                                              _clientID, _clientSecret, _redirectURI, refreshToken]
+                                  completion:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+                                      @synchronized (pendingRefreshes) {
+                                          isRefreshing = NO;
+                                          NSError *jsonError;
+                                          NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data
+                                                                                               options:NSJSONReadingMutableContainers
+                                                                                                 error:&jsonError];
+                                          NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse *)response;
+                                          if (json && !error && httpResponse && httpResponse.statusCode >= 200 &&  httpResponse.statusCode < 300) {
+                                              [weakself saveTokenDataFromJson:json scope:scope];
+                                              NSString * accessToken = [json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM];
+                                              if (accessToken) {
+                                                  [pendingRefreshes enumerateObjectsUsingBlock:^(id  _Nonnull callback, NSUInteger idx, BOOL * _Nonnull stop) {
+                                                      ((IDmeVerifyWebVerifyTokenResults) callback)(accessToken, nil);
+                                                  }];
+                                                  return;
+                                              }
+                                          }
+                                          [pendingRefreshes enumerateObjectsUsingBlock:^(id  _Nonnull callback, NSUInteger idx, BOOL * _Nonnull stop) {
+                                              ((IDmeVerifyWebVerifyTokenResults) callback)(nil, [weakself refreshTokenErrorWithUserInfo:@{NSLocalizedDescriptionKey: IDME_WEB_VERIFY_REFRESH_TOKEN_FAILED}]);
+                                          }];
+                                          [pendingRefreshes removeAllObjects];
+                                      }
+                                  }];
+            }
+        }
     }
 }
 
