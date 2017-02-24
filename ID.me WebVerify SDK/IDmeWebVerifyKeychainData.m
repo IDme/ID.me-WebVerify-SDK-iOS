@@ -38,11 +38,9 @@
 }
 
 -(void)persist{
-    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-        NSError* error;
-        NSData *dictionaryRep = [NSPropertyListSerialization dataWithPropertyList:[self tokensByScope] format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
-        [SAMKeychain setPasswordData:dictionaryRep forService:[NSBundle mainBundle].bundleIdentifier account:IDME_KEYCHAIN_DATA_ACCOUNT error:&error];
-    });
+    NSError* error;
+    NSData *dictionaryRep = [NSPropertyListSerialization dataWithPropertyList:[self tokensByScope] format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
+    [SAMKeychain setPasswordData:dictionaryRep forService:[NSBundle mainBundle].bundleIdentifier account:IDME_KEYCHAIN_DATA_ACCOUNT error:&error];
 }
 
 -(void)clean {
