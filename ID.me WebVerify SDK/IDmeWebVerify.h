@@ -83,6 +83,8 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
 
 /// Specifies if cancel button will be shown in the webView or not. Default is YES.
 @property (nonatomic) Boolean showCancelButton;
+@property (nonatomic, strong, nullable) NSString *errorPageTitle;
+@property (nonatomic, strong, nullable) NSString *errorPageDescription;
 
 /**
  @param clientID The clientID provided by ID.me when registering the app at @b http://developer.id.me

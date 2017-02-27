@@ -5,7 +5,10 @@ Pod::Spec.new do |s|
   s.homepage     = "https://github.com/IDme/ID.me-WebVerify-SDK-iOS"
   s.platform     = :ios, '8.0'
   s.source       = { :git => "https://github.com/IDme/ID.me-WebVerify-SDK-iOS.git", :tag => s.version.to_s }
-  s.source_files = 'ID.me WebVerify SDK/*{.h,.m}'
+  s.source_files = [
+    'ID.me WebVerify SDK/*{.h,.m}',
+    'lib/Reachability/*{.h,.m}'
+  ]
   s.requires_arc = true
   s.author       = { "Arthur Ariel Sabintsev" => "arthur@sabintsev.com" }
   s.license      = 'MIT'
