@@ -85,6 +85,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
 @property (nonatomic) Boolean showCancelButton;
 @property (nonatomic, strong, nullable) NSString *errorPageTitle;
 @property (nonatomic, strong, nullable) NSString *errorPageDescription;
+@property (nonatomic, strong, nullable) NSString *errorPageRetryAction;
 
 /**
  @param clientID The clientID provided by ID.me when registering the app at @b http://developer.id.me

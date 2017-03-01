@@ -20,6 +20,7 @@
 
 @property (nonatomic, strong, nullable) NSString *errorPageTitle;
 @property (nonatomic, strong, nullable) NSString *errorPageDescription;
+@property (nonatomic, strong, nullable) NSString *errorPageRetryAction;
 
 @property (nonatomic, weak, nullable) id<IDmeWebViewDelegate> delegate;
 

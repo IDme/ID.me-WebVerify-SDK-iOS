@@ -18,7 +18,7 @@
 #import <WebKit/WebKit.h>
 
 /// API Constants (Production)
-#define IDME_WEB_VERIFY_BASE_URL                        @"https://api.idmelabs.com/"
+#define IDME_WEB_VERIFY_BASE_URL                        @"https://api.id.me/"
 #define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@"
 #define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
 #define IDME_WEB_VERIFY_REFRESH_CODE_URL                IDME_WEB_VERIFY_BASE_URL @"oauth/token"
@@ -81,7 +81,8 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
         isRefreshing = NO;
         pendingRefreshes = [[NSMutableDictionary alloc] init];
         self.errorPageTitle = NSLocalizedString(@"Unavailable", @"IDme WebVerify SDK disconnected page title");
-        self.errorPageDescription = NSLocalizedString(@"ID.me requires a connection to the internet.", @"IDme WebVerify SDK disconnected page description");
+        self.errorPageDescription = NSLocalizedString(@"ID.me requires an internet connection.", @"IDme WebVerify SDK disconnected page description");
+        self.errorPageRetryAction = NSLocalizedString(@"Retry", @"IDme WebVerify SDK disconnected page retry action");
         self.reachability = [IDmeReachability reachabilityForInternetConnection];
         [self clearWebViewCacheAndCookies];
     }
@@ -489,6 +490,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     webView.delegate = delegate;
     webView.errorPageDescription = self.errorPageDescription;
     webView.errorPageTitle = self.errorPageTitle;
+    webView.errorPageRetryAction = self.errorPageRetryAction;
 
     return webView;
 }

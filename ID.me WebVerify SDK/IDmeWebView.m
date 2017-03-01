@@ -10,8 +10,9 @@
 
 #import "IDmeWebVerify.h"
 
-#define DISCONNECTED_VIEW_TITLE_LABEL_TAG       23
-#define DISCONNECTED_VIEW_DESCRIPTION_LABEL_TAG 32
+#define DISCONNECTED_VIEW_TITLE_LABEL_TAG       21
+#define DISCONNECTED_VIEW_DESCRIPTION_LABEL_TAG 22
+#define DISCONNECTED_VIEW_RETRY_BUTTON_TAG      23
 
 @interface IDmeWebView()
 
@@ -58,10 +59,17 @@
     descriptionLabel.translatesAutoresizingMaskIntoConstraints = NO;
 
     UIButton *retryButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 90, 30)];
+    retryButton.contentEdgeInsets = UIEdgeInsetsMake(0, 50, 0, 50);
+    retryButton.layer.borderColor = textColor.CGColor;
+    retryButton.layer.borderWidth = 1.0f;
+    retryButton.layer.cornerRadius = 25;
+    retryButton.layer.masksToBounds = YES;
+    retryButton.tag = DISCONNECTED_VIEW_RETRY_BUTTON_TAG;
     retryButton.translatesAutoresizingMaskIntoConstraints = NO;
     [retryButton addTarget:self action:@selector(retryButtonDidTouch:) forControlEvents:UIControlEventTouchUpInside];
-    [retryButton setTitle:@"Retry" forState:UIControlStateNormal];
-    [retryButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+    [retryButton setTitle:self.errorPageRetryAction forState:UIControlStateNormal];
+    [retryButton setTitleColor:textColor forState:UIControlStateNormal];
+    [retryButton setTitleColor:[textColor colorWithAlphaComponent:0.60f] forState:UIControlStateHighlighted];
 
     _disconnectedView = [[UIView alloc] initWithFrame:self.frame];
     _disconnectedView.backgroundColor = [UIColor whiteColor];
@@ -103,7 +111,7 @@
                                                                  multiplier:1.0f
                                                                    constant:-40.0f]];
 
-    [_disconnectedView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[image]-15-[title]-15-[desc]-15-[button]" options:0 metrics:nil views:views]];
+    [_disconnectedView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[image]-15-[title]-15-[desc]-30-[button(50)]" options:0 metrics:nil views:views]];
     [_disconnectedView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-15-[title]-15-|" options:0 metrics:nil views:views]];
     [_disconnectedView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-15-[desc]-15-|" options:0 metrics:nil views:views]];
 
@@ -182,6 +190,13 @@
     _errorPageDescription = errorPageDescription;
     if (_disconnectedView) {
         [[_disconnectedView viewWithTag:DISCONNECTED_VIEW_DESCRIPTION_LABEL_TAG] setText:errorPageDescription];
+    }
+}
+
+- (void)setErrorPageRetryAction:(NSString *)errorPageRetryAction {
+    _errorPageRetryAction = errorPageRetryAction;
+    if (_disconnectedView) {
+        [[_disconnectedView viewWithTag:DISCONNECTED_VIEW_RETRY_BUTTON_TAG] setTitle:errorPageRetryAction forState:UIControlStateNormal];
     }
 }
 
