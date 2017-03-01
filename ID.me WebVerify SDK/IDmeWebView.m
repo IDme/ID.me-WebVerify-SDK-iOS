@@ -10,6 +10,9 @@
 
 #import "IDmeWebVerify.h"
 
+#define DISCONNECTED_VIEW_TITLE_LABEL_TAG       23
+#define DISCONNECTED_VIEW_DESCRIPTION_LABEL_TAG 32
+
 @interface IDmeWebView()
 
 @property (nonatomic, nonnull, readonly, strong) UIView *disconnectedView;
@@ -19,6 +22,8 @@
 
 @implementation IDmeWebView
 
+@synthesize errorPageTitle = _errorPageTitle;
+@synthesize errorPageDescription = _errorPageDescription;
 @synthesize disconnectedView = _disconnectedView;
 @synthesize loadingIndicatorView = _loadingIndicatorView;
 
@@ -33,20 +38,30 @@
                                                                   compatibleWithTraitCollection:nil]];
     disconnectedImageView.translatesAutoresizingMaskIntoConstraints = NO;
 
+    UIColor *textColor = [UIColor colorWithRed:45.0f / 255.0f green:62.0f / 255.0f blue:81.0f / 255.0f alpha:1.0f];
+
     UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 25, 120)];
     titleLabel.font = [UIFont systemFontOfSize:20];
     titleLabel.numberOfLines = 0;
-    titleLabel.text = [[IDmeWebVerify sharedInstance] errorPageTitle];
+    titleLabel.tag = DISCONNECTED_VIEW_TITLE_LABEL_TAG;
+    titleLabel.text = self.errorPageTitle;
     titleLabel.textAlignment = NSTextAlignmentCenter;
-    titleLabel.textColor = [UIColor colorWithRed:45.0f / 255.0f green:62.0f / 255.0f blue:81.0f / 255.0f alpha:1.0f];
+    titleLabel.textColor = textColor;
     titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
 
     UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 25, 120)];
     descriptionLabel.numberOfLines = 0;
-    descriptionLabel.text = [[IDmeWebVerify sharedInstance] errorPageDescription];
+    descriptionLabel.tag = DISCONNECTED_VIEW_DESCRIPTION_LABEL_TAG;
+    descriptionLabel.text = self.errorPageDescription;
     descriptionLabel.textAlignment = NSTextAlignmentCenter;
-    descriptionLabel.textColor = [UIColor colorWithRed:45.0f / 255.0f green:62.0f / 255.0f blue:81.0f / 255.0f alpha:1.0f];
+    descriptionLabel.textColor = textColor;
     descriptionLabel.translatesAutoresizingMaskIntoConstraints = NO;
+
+    UIButton *retryButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 90, 30)];
+    retryButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [retryButton addTarget:self action:@selector(retryButtonDidTouch:) forControlEvents:UIControlEventTouchUpInside];
+    [retryButton setTitle:@"Retry" forState:UIControlStateNormal];
+    [retryButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
 
     _disconnectedView = [[UIView alloc] initWithFrame:self.frame];
     _disconnectedView.backgroundColor = [UIColor whiteColor];
@@ -55,14 +70,24 @@
     [_disconnectedView addSubview:disconnectedImageView];
     [_disconnectedView addSubview:titleLabel];
     [_disconnectedView addSubview:descriptionLabel];
+    [_disconnectedView addSubview:retryButton];
 
     NSDictionary *views = @{
         @"image": disconnectedImageView,
         @"title": titleLabel,
-        @"desc": descriptionLabel
+        @"desc": descriptionLabel,
+        @"button": retryButton
     };
 
     [_disconnectedView addConstraint:[NSLayoutConstraint constraintWithItem:disconnectedImageView
+                                                                  attribute:NSLayoutAttributeCenterX
+                                                                  relatedBy:NSLayoutRelationEqual
+                                                                     toItem:_disconnectedView
+                                                                  attribute:NSLayoutAttributeCenterX
+                                                                 multiplier:1.0f
+                                                                   constant:0.0f]];
+
+    [_disconnectedView addConstraint:[NSLayoutConstraint constraintWithItem:retryButton
                                                                   attribute:NSLayoutAttributeCenterX
                                                                   relatedBy:NSLayoutRelationEqual
                                                                      toItem:_disconnectedView
@@ -78,7 +103,7 @@
                                                                  multiplier:1.0f
                                                                    constant:-40.0f]];
 
-    [_disconnectedView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[image]-15-[title]-15-[desc]" options:0 metrics:nil views:views]];
+    [_disconnectedView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[image]-15-[title]-15-[desc]-15-[button]" options:0 metrics:nil views:views]];
     [_disconnectedView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-15-[title]-15-|" options:0 metrics:nil views:views]];
     [_disconnectedView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-15-[desc]-15-|" options:0 metrics:nil views:views]];
 
@@ -130,21 +155,34 @@
     return _loadingIndicatorView;
 }
 
+- (void)setDelegate:(id<IDmeWebViewDelegate>)delegate {
+    _delegate = delegate;
+    self.UIDelegate = delegate;
+    self.navigationDelegate = delegate;
+}
+
 - (void)setErrorPageHidden:(Boolean)hidden animated:(BOOL)animated {
     [self setLoadingIndicatorHidden:YES];
 
-    if (self.disconnectedView.hidden && hidden) {
-        return;
-    }
-
     __typeof__(self) __weak weakSelf = self;
+    weakSelf.disconnectedView.alpha = hidden ? 1.0f : 0.0f;
     [UIView animateWithDuration:0.35 animations:^{
         weakSelf.disconnectedView.alpha = hidden ? 0.0f : 1.0f;
-    } completion:^(BOOL finished) {
-        if (finished) {
-            weakSelf.disconnectedView.hidden = hidden;
-        }
     }];
+}
+
+- (void)setErrorPageTitle:(NSString *)errorPageTitle {
+    _errorPageTitle = errorPageTitle;
+    if (_disconnectedView) {
+        [[_disconnectedView viewWithTag:DISCONNECTED_VIEW_TITLE_LABEL_TAG] setText:errorPageTitle];
+    }
+}
+
+- (void)setErrorPageDescription:(NSString *)errorPageDescription {
+    _errorPageDescription = errorPageDescription;
+    if (_disconnectedView) {
+        [[_disconnectedView viewWithTag:DISCONNECTED_VIEW_DESCRIPTION_LABEL_TAG] setText:errorPageDescription];
+    }
 }
 
 - (void)setLoadingIndicatorHidden:(Boolean)hidden {
@@ -169,7 +207,6 @@
 
 - (void)initialize {
     self.disconnectedView.alpha = 0.0f;
-    self.disconnectedView.hidden = YES;
     [self addSubview:self.disconnectedView];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[view]|" options:0 metrics:nil views:@{ @"view": self.disconnectedView }]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[view]|" options:0 metrics:nil views:@{ @"view": self.disconnectedView }]];
@@ -178,6 +215,16 @@
     [self addSubview:self.loadingIndicatorView];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[view]|" options:0 metrics:nil views:@{ @"view": self.loadingIndicatorView }]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[view]|" options:0 metrics:nil views:@{ @"view": self.loadingIndicatorView }]];
+}
+
+- (void)retryButtonDidTouch:(id)sender {
+    [self setErrorPageHidden:YES animated:YES];
+    [self setLoadingIndicatorHidden:NO];
+
+    __typeof__(self) __weak weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf.delegate reloadWebView:self];
+    });
 }
 
 @end

@@ -471,7 +471,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 }
 
 #pragma mark - WebView Persistance Methods (Private)
-- (IDmeWebView * _Nonnull)createWebViewWithDelegate:(id<WKNavigationDelegate, WKUIDelegate>)delegate {
+- (IDmeWebView * _Nonnull)createWebViewWithDelegate:(id<IDmeWebViewDelegate>)delegate {
     CGRect parentViewControllerViewFrame = [_presentingViewController.view frame];
     CGRect webViewFrame = CGRectMake(0.0f,
                                      0.0f,
@@ -485,10 +485,10 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     }
 
     IDmeWebView *webView = [[IDmeWebView alloc] initWithFrame:webViewFrame configuration:configuration];
-
-    webView.navigationDelegate = delegate;
-    webView.UIDelegate = delegate;
     webView.allowsBackForwardNavigationGestures = YES;
+    webView.delegate = delegate;
+    webView.errorPageDescription = self.errorPageDescription;
+    webView.errorPageTitle = self.errorPageTitle;
 
     return webView;
 }

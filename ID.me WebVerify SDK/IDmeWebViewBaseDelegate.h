@@ -10,8 +10,9 @@
 #import <WebKit/WebKit.h>
 
 #import "IDmeReachability.h"
+#import "IDmeWebView.h"
 
-@interface IDmeWebViewBaseDelegate : NSObject <WKNavigationDelegate, WKUIDelegate>
+@interface IDmeWebViewBaseDelegate : NSObject <IDmeWebViewDelegate>
 
 @property (copy, nonatomic, nullable) void (^callback)(id _Nullable result, NSError * _Nullable error);
 @property (copy, nonatomic, copy, nullable) void (^onNavigationUpdate)();
@@ -28,6 +29,7 @@
 
 #pragma mark - WKWebView delegate methods
 
+- (void)reloadWebView:(IDmeWebView *)webView;
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation;
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error;
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error;

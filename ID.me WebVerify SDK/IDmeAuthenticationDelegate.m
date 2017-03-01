@@ -38,27 +38,6 @@
         if (self.callback) {
             self.callback([parameters objectForKey:@"code"], nil);
         }
-        //            [[IDmeWebVerify sharedInstance] makePostRequestWithUrl:IDME_WEB_VERIFY_REFRESH_CODE_URL
-        //                              parameters:[NSString stringWithFormat:@"client_id=%@&client_secret=%@&redirect_uri=%@&code=%@&grant_type=authorization_code",
-        //                                          _clientID, _clientSecret, _redirectURI, [parameters objectForKey:@"code"]]
-        //                              completion:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        //                                  NSError *jsonError;
-        //                                  NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data
-        //                                                                                       options:NSJSONReadingMutableContainers
-        //                                                                                         error:&jsonError];
-        //
-        //                                  if (json) {
-        //                                      [weakself saveTokenDataFromJson:json scope:requestScope];
-        //                                      if (_loadUser == YES)
-        //                                      [weakself getUserProfileWithScope:requestScope result:_webVerificationProfileResults];
-        //                                      else {
-        //                                          _webVerificationTokenResults([json objectForKey:IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM], nil);
-        //                                          [weakself destroyWebNavigationController];
-        //                                      }
-        //                                  } else {
-        //                                      _webVerificationTokenResults(nil, [weakself notAuthorizedErrorWithUserInfo:@{NSLocalizedDescriptionKey: IDME_WEB_VERIFY_VERIFICATION_FAILED}]);
-        //                                  }
-        //                              }];
         return WKNavigationActionPolicyCancel;
     } else if ([parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM]) {
         // Extract 'error_description' from URL query parameters that are separated by '&'
@@ -66,13 +45,6 @@
         errorDescription = [errorDescription stringByReplacingOccurrencesOfString:@"+" withString:@" "];
         NSDictionary *details = @{ NSLocalizedDescriptionKey : errorDescription };
         NSError *error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeVerificationWasDeniedByUser userInfo:details];
-        //            if (_webVerificationTokenResults) {
-        //                _webVerificationTokenResults(nil, error);
-        //            } else {
-        //                _webVerificationProfileResults(nil, error);
-        //            }
-        //            [self destroyWebNavigationController];
-        
         if (self.callback) {
             self.callback(nil, error);
         }
