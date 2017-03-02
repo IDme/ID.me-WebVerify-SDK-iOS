@@ -18,13 +18,12 @@
 #import <WebKit/WebKit.h>
 
 /// API Constants (Production)
-#define IDME_WEB_VERIFY_BASE_URL                        @"https://api.id.me/"
-#define IDME_WEB_VERIFY_GET_AUTH_URI                    IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@"
-#define IDME_WEB_VERIFY_GET_USER_PROFILE                IDME_WEB_VERIFY_BASE_URL @"api/public/v2/data.json?access_token=%@"
-#define IDME_WEB_VERIFY_REFRESH_CODE_URL                IDME_WEB_VERIFY_BASE_URL @"oauth/token"
-#define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
-#define IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI        IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&access_token=%@"
-#define IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN                IDME_WEB_VERIFY_BASE_URL @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&op=%@"
+#define IDME_WEB_VERIFY_GET_AUTH_URI                    @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@"
+#define IDME_WEB_VERIFY_GET_USER_PROFILE                @"api/public/v2/data.json?access_token=%@"
+#define IDME_WEB_VERIFY_REFRESH_CODE_URL                @"oauth/token"
+#define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@&access_token=%@"
+#define IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI        @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&access_token=%@"
+#define IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN                @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&op=%@"
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
@@ -60,6 +59,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     IDmeAuthenticationDelegate* authenticationDelegate;
     NSMutableDictionary* pendingRefreshes;
     BOOL isRefreshing;
+    NSString* BASE_URL;
 }
 
 #pragma mark - Initialization Methods
@@ -84,6 +84,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
         self.errorPageDescription = NSLocalizedString(@"ID.me requires an internet connection.", @"IDme WebVerify SDK disconnected page description");
         self.errorPageRetryAction = NSLocalizedString(@"Retry", @"IDme WebVerify SDK disconnected page retry action");
         self.reachability = [IDmeReachability reachabilityForInternetConnection];
+        BASE_URL = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IDmeWebVerifyAPIDomainURL"] ?: @"https://api.id.me/";
         [self clearWebViewCacheAndCookies];
     }
     
@@ -140,7 +141,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 
         NSString *params = [NSString stringWithFormat:@"client_id=%@&client_secret=%@&redirect_uri=%@&code=%@&grant_type=authorization_code",
                             weakSelf.clientID, weakSelf.clientSecret, weakSelf.redirectURI, authCode];
-        [weakSelf makePostRequestWithUrl:IDME_WEB_VERIFY_REFRESH_CODE_URL
+        [weakSelf makePostRequestWithUrl:[weakSelf urlStringWithURL:IDME_WEB_VERIFY_REFRESH_CODE_URL]
                               parameters:params
                               completion:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
                                   NSError *jsonError;
@@ -171,7 +172,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 
     [self launchWebNavigationControllerWithDelegate:authenticationDelegate completion:^{
         // GET Access Token via UIWebView flow
-        [weakSelf loadWebViewWithRequest:[NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, weakSelf.clientID, weakSelf.redirectURI, scope]];
+        [weakSelf loadWebViewWithRequest:[NSString stringWithFormat:[weakSelf urlStringWithURL:IDME_WEB_VERIFY_GET_AUTH_URI], weakSelf.clientID, weakSelf.redirectURI, scope]];
     }];
 }
 
@@ -195,7 +196,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 
         NSString *params = [NSString stringWithFormat:@"client_id=%@&client_secret=%@&redirect_uri=%@&code=%@&grant_type=authorization_code",
                             weakSelf.clientID, weakSelf.clientSecret, weakSelf.redirectURI, authCode];
-        [weakSelf makePostRequestWithUrl:IDME_WEB_VERIFY_REFRESH_CODE_URL
+        [weakSelf makePostRequestWithUrl:[weakSelf urlStringWithURL:IDME_WEB_VERIFY_REFRESH_CODE_URL]
                               parameters:params
                               completion:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
                                   NSError *jsonError;
@@ -218,7 +219,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 
     [self launchWebNavigationControllerWithDelegate:authenticationDelegate completion:^{
         // GET Access Token via UIWebView flow
-        [weakSelf loadWebViewWithRequest:[NSString stringWithFormat:IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN,
+        [weakSelf loadWebViewWithRequest:[NSString stringWithFormat:[weakSelf urlStringWithURL:IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN],
                                           _clientID, _redirectURI, scope, [self stringForLoginType:loginType]]];
     }];
 }
@@ -245,7 +246,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
         [weakself getAccessTokenWithScope:scope
                           forceRefreshing:NO
                                    result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
-                                       NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_REGISTER_CONNECTION_URI,
+                                       NSString *requestString = [NSString stringWithFormat:[weakself urlStringWithURL:IDME_WEB_VERIFY_REGISTER_CONNECTION_URI],
                                                                   _clientID, _redirectURI, scope,
                                                                   [weakself stringForConnection:type], accessToken ?: @""];
                                        [weakself loadWebViewWithRequest:requestString];
@@ -277,7 +278,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                           forceRefreshing:NO
                                    result:^(NSString * _Nullable accessToken, NSError * _Nullable error) {
 
-                                       NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI,
+                                       NSString *requestString = [NSString stringWithFormat:[weakself urlStringWithURL:IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI],
                                                                   _clientID, _redirectURI, [weakself stringForAffiliation:type], accessToken ?: @""];
                                        [weakself loadWebViewWithRequest:requestString];
                                }];
@@ -299,7 +300,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                                     }
                                     return;
                                 }
-                                NSString *requestString = [NSString stringWithFormat:IDME_WEB_VERIFY_GET_USER_PROFILE, accessToken];
+                                NSString *requestString = [NSString stringWithFormat:[weakself urlStringWithURL:IDME_WEB_VERIFY_GET_USER_PROFILE], accessToken];
 
                                 requestString = [requestString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
                                 NSURL *requestURL = [NSURL URLWithString:requestString];
@@ -411,7 +412,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
             }
 
             __weak IDmeWebVerify *weakself = self;
-            [self makePostRequestWithUrl:IDME_WEB_VERIFY_REFRESH_CODE_URL
+            [self makePostRequestWithUrl:[self urlStringWithURL:IDME_WEB_VERIFY_REFRESH_CODE_URL]
                               parameters:[NSString stringWithFormat:@"client_id=%@&client_secret=%@&redirect_uri=%@&refresh_token=%@&grant_type=refresh_token",
                                           _clientID, _clientSecret, _redirectURI, refreshToken]
                               completion:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
@@ -512,7 +513,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     NSHTTPCookie *cookie;
     NSHTTPCookieStorage *storage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
 
-    NSURL *url = [[NSURL alloc] initWithString:[NSString stringWithFormat:IDME_WEB_VERIFY_GET_AUTH_URI, @"", @"", @""]];
+    NSURL *url = [[NSURL alloc] initWithString:[NSString stringWithFormat:[self urlStringWithURL:IDME_WEB_VERIFY_GET_AUTH_URI], @"", @"", @""]];
     NSString *domain = [url.host stringByReplacingOccurrencesOfString:@"api" withString:@""];
     for (cookie in [storage cookies]) {
         if ([cookie.domain isEqualToString:domain]) {
@@ -727,6 +728,10 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
             return @"signin";
             break;
     }
+}
+
+- (NSString * _Nonnull)urlStringWithQueryString:(NSString* _Nonnull)string {
+    return [BASE_URL stringByAppendingString:string];
 }
 
 @end
