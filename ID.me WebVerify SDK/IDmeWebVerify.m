@@ -81,7 +81,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
         isRefreshing = NO;
         pendingRefreshes = [[NSMutableDictionary alloc] init];
         self.errorPageTitle = NSLocalizedString(@"Unavailable", @"IDme WebVerify SDK disconnected page title");
-        self.errorPageDescription = NSLocalizedString(@"ID.me requires an internet connection.", @"IDme WebVerify SDK disconnected page description");
+        self.errorPageDescription = NSLocalizedString(@"ID.me Wallet requires an internet connection.", @"IDme WebVerify SDK disconnected page description");
         self.errorPageRetryAction = NSLocalizedString(@"Retry", @"IDme WebVerify SDK disconnected page retry action");
         self.reachability = [IDmeReachability reachabilityForInternetConnection];
         BASE_URL = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IDmeWebVerifyAPIDomainURL"] ?: @"https://api.id.me/";
