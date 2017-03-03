@@ -27,7 +27,6 @@
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
-#define IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM         @"error_description"
 #define IDME_WEB_VERIFY_EXPIRATION_PARAM                @"expires_in"
 #define IDME_WEB_VERIFY_REFRESH_EXPIRATION_PARAM        @"refresh_expires_in"
 #define IDME_WEB_VERIFY_REFRESH_TOKEN_PARAM             @"refresh_token"
@@ -445,7 +444,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 }
 
 #pragma mark - Web view Methods
-- (void)launchWebNavigationControllerWithDelegate:(id<WKNavigationDelegate, WKUIDelegate>)delegate completion:(void (^ __nullable)(void))completion {
+- (void)launchWebNavigationControllerWithDelegate:(id<IDmeWebViewDelegate>)delegate completion:(void (^ __nullable)(void))completion {
 
     // Initialize _webView
     _webView = [self createWebViewWithDelegate:delegate];
