@@ -25,6 +25,7 @@
     if (query) {
         if ([parameters objectForKey:@"code"] && [query hasPrefix:self.redirectUri]) {
             self.callback(nil, nil);
+            return WKNavigationActionPolicyCancel;
         } else if ([parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM] && [parameters objectForKey:IDME_WEB_VERIFY_ERROR_PARAM]) {
             // Extract 'error_description' from URL query parameters that are separated by '&'
             NSString *errorDescription = [parameters objectForKey:IDME_WEB_VERIFY_ERROR_DESCRIPTION_PARAM];
@@ -37,8 +38,8 @@
                 error = [[NSError alloc] initWithDomain:IDME_WEB_VERIFY_ERROR_DOMAIN code:IDmeWebVerifyErrorCodeAuthenticationFailed userInfo:details];
             }
             self.callback(nil, error);
+            return WKNavigationActionPolicyCancel;
         }
-        return WKNavigationActionPolicyCancel;
     }
 
     return WKNavigationActionPolicyAllow;
