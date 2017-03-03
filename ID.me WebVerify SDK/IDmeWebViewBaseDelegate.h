@@ -29,16 +29,19 @@
 
 #pragma mark - WKWebView delegate methods
 
-- (void)reloadWebView:(IDmeWebView *)webView;
-- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation;
-- (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error;
-- (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error;
-- (void)webView:(WKWebView *)webView didCommitNavigation:(WKNavigation *)navigation;
-- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler;
-- (WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures;
+- (void)reloadWebView:(null_unspecified IDmeWebView *)webView;
+- (void)webView:(null_unspecified WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation;
+- (void)webView:(null_unspecified WKWebView *)webView didFailNavigation:(null_unspecified WKNavigation *)navigation withError:(null_unspecified NSError *)error;
+- (void)webView:(null_unspecified WKWebView *)webView didFailProvisionalNavigation:(null_unspecified WKNavigation *)navigation withError:(null_unspecified NSError *)error;
+- (void)webView:(null_unspecified WKWebView *)webView didCommitNavigation:(null_unspecified WKNavigation *)navigation;
+- (void)webView:(null_unspecified WKWebView *)webView decidePolicyForNavigationAction:(null_unspecified WKNavigationAction *)navigationAction decisionHandler:(null_unspecified void (^)(WKNavigationActionPolicy))decisionHandler;
+- (null_unspecified WKWebView *)webView:(null_unspecified WKWebView *)webView createWebViewWithConfiguration:(null_unspecified WKWebViewConfiguration *)configuration forNavigationAction:(null_unspecified WKNavigationAction *)navigationAction windowFeatures:(null_unspecified WKWindowFeatures *)windowFeatures;
 
 #pragma mark - Must be overriden
 
 - (WKNavigationActionPolicy)policyForWebView:(null_unspecified WKWebView *)webView navigationAction:(null_unspecified WKNavigationAction *)navigationAction;
+
+#pragma mark - Parameter parsing
+- (NSMutableDictionary * _Nonnull)parseQueryParametersFromURL:(NSString * _Nonnull)query;
 
 @end
