@@ -93,4 +93,24 @@
     }
 }
 
+#pragma mark - Private functions
+
+- (NSMutableDictionary * _Nonnull)parseQueryParametersFromURL:(NSString * _Nonnull)query{
+    query = [query stringByReplacingOccurrencesOfString:@"#" withString:@"&"];
+    query = [query stringByReplacingOccurrencesOfString:@"?" withString:@"&"];
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+
+    NSArray *components = [query componentsSeparatedByString:@"&"];
+    for (NSString *component in components) {
+        NSArray *parts = [component componentsSeparatedByString:@"="];
+        NSString *key = [[parts objectAtIndex:0] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        if ([parts count] > 1) {
+            id value = [[parts objectAtIndex:1] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+            [parameters setObject:value forKey:key];
+        }
+    }
+
+    return parameters;
+}
+
 @end

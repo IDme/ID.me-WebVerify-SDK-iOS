@@ -12,7 +12,7 @@
 
 @protocol IDmeWebViewDelegate <NSObject, WKNavigationDelegate, WKUIDelegate>
 
-- (void)reloadWebView:(IDmeWebView *)webView;
+- (void)reloadWebView:(null_unspecified IDmeWebView *)webView;
 
 @end
 

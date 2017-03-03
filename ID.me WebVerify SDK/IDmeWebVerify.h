@@ -36,6 +36,9 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
     /// Error occurs if user exits modal navigation controller before OAuth flow could complete.
     IDmeWebVerifyErrorCodeVerificationWasCanceledByUser,
 
+    /// Error occurs if user authentication fails without the user cancelling the process.
+    IDmeWebVerifyErrorCodeAuthenticationFailed,
+
     /// Error occurs if getUserProfileWithScope:result: or getAccessTokenWithScope:forceRefreshing:result: are called with a scope that has no access token associated.
     IDmeWebVerifyErrorCodeNoSuchScope,
 
