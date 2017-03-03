@@ -172,8 +172,14 @@
 - (void)setErrorPageHidden:(Boolean)hidden animated:(BOOL)animated {
     [self setLoadingIndicatorHidden:YES];
 
+    if ((self.disconnectedView.alpha == 0.0f && hidden) || (self.disconnectedView.alpha == 1.0f && !hidden)) {
+        // Avoid hidding a hidden view and showing a visible view. This prevent the view fading in/out just for a second
+        return;
+    }
+
+    self.disconnectedView.alpha = hidden ? 1.0f : 0.0f;
+
     __typeof__(self) __weak weakSelf = self;
-    weakSelf.disconnectedView.alpha = hidden ? 1.0f : 0.0f;
     [UIView animateWithDuration:0.35 animations:^{
         weakSelf.disconnectedView.alpha = hidden ? 0.0f : 1.0f;
     }];

@@ -565,6 +565,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 - (void)backTapped:(id)sender {
     if ([_webView canGoBack]) {
         [_webView goBack];
+        [_webView setErrorPageHidden:YES animated:YES];
     }
 }
 
