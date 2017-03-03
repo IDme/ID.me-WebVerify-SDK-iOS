@@ -38,7 +38,6 @@
             }
             self.callback(nil, error);
         }
-        self.callback(nil, nil);
         return WKNavigationActionPolicyCancel;
     }
 
