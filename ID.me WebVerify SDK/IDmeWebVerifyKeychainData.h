@@ -26,6 +26,7 @@
        forScope:(NSString * _Nonnull)scope;
 
 -(void)clean;
+-(BOOL)isClean;
 
 @end
 
