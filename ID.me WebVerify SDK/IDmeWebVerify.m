@@ -45,6 +45,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 @property (nonatomic, copy) NSString *clientSecret;
 @property (nonatomic, copy) NSString *redirectURI;
 @property (nonatomic, strong) IDmeWebVerifyKeychainData *keychainData;
+@property (nonatomic, strong) WKProcessPool *processPool;
 @property (nonatomic, strong) UIViewController *presentingViewController;
 @property (nonatomic, strong) IDmeWebVerifyNavigationController *webNavigationController;
 @property (nonatomic, strong) IDmeWebView *webView;
@@ -57,7 +58,6 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     IDmeConnectionDelegate* connectionDelegate;
     IDmeAuthenticationDelegate* authenticationDelegate;
     NSMutableDictionary* pendingRefreshes;
-    BOOL isRefreshing;
     NSString* BASE_URL;
 }
 
@@ -77,14 +77,13 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     if (self) {
         _keychainData = [[IDmeWebVerifyKeychainData alloc] init];
         _showCancelButton = YES;
-        isRefreshing = NO;
+        _processPool = [[WKProcessPool alloc] init];
         pendingRefreshes = [[NSMutableDictionary alloc] init];
         self.errorPageTitle = NSLocalizedString(@"Unavailable", @"IDme WebVerify SDK disconnected page title");
         self.errorPageDescription = NSLocalizedString(@"ID.me Wallet requires an internet connection.", @"IDme WebVerify SDK disconnected page description");
         self.errorPageRetryAction = NSLocalizedString(@"Retry", @"IDme WebVerify SDK disconnected page retry action");
         self.reachability = [IDmeReachability reachabilityForInternetConnection];
         BASE_URL = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"IDmeWebVerifyAPIDomainURL"] ?: @"https://api.id.me/";
-        [self clearWebViewCacheAndCookies];
     }
     
     return self;
@@ -126,7 +125,6 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                           loadUser:(BOOL)loadUser
                           callback:(void (^ _Nonnull)(id _Nullable result, NSError * _Nullable error))callback {
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
-    [self clearWebViewCacheAndCookies];
     [self setPresentingViewController:externalViewController];
 
     __weak IDmeWebVerify *weakSelf = self;
@@ -180,7 +178,6 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                              loginType:(IDmeWebVerifyLoginType)loginType
                        withTokenResult:(IDmeVerifyWebVerifyTokenResults)webVerificationResults {
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
-    [self clearWebViewCacheAndCookies];
     [self setPresentingViewController:externalViewController];
 
     __weak IDmeWebVerify *weakSelf = self;
@@ -238,7 +235,6 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
         [weakself updateBackButton];
     };
     connectionDelegate.redirectUri = self.redirectURI;
-    [self clearWebViewCacheAndCookies];
     [self setPresentingViewController:viewController];
     [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
         // Register Connection via UIWebView flow
@@ -268,7 +264,6 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
         [weakself updateBackButton];
     };
     connectionDelegate.redirectUri = self.redirectURI;
-    [self clearWebViewCacheAndCookies];
     [self setPresentingViewController:viewController];
     [self launchWebNavigationControllerWithDelegate:connectionDelegate completion:^{
 
@@ -340,6 +335,12 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 
 -(void)logout {
     [self.keychainData clean];
+    [self clearWebViewCacheAndCookies];
+    self.processPool = [[WKProcessPool alloc] init];
+}
+
+-(BOOL)isLoggedIn {
+    return ![self.keychainData isClean];
 }
 
 - (void)getAccessTokenWithScope:(NSString* _Nullable)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback {
@@ -467,7 +468,9 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     // to avoid sending stored cookies when loading the request in the WKWebView. On iOS9+ use a non-persistent
     // datastore which won't save any cookie (it's intended to implement "private browsing" in a webview).
     request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
-    [request setValue:@"" forHTTPHeaderField:@"Cookie"];
+    if (![self isLoggedIn]) {
+        [request setValue:@"" forHTTPHeaderField:@"Cookie"];
+    }
     [_webView loadRequest:[request copy]];
 }
 
@@ -480,10 +483,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                                      parentViewControllerViewFrame.size.height);
 
     WKWebViewConfiguration *configuration = [WKWebViewConfiguration new];
-
-    if ([configuration respondsToSelector:@selector(setWebsiteDataStore:)]) {
-        configuration.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
-    }
+    configuration.processPool = self.processPool;
 
     IDmeWebView *webView = [[IDmeWebView alloc] initWithFrame:webViewFrame configuration:configuration];
     webView.allowsBackForwardNavigationGestures = YES;
@@ -583,7 +583,6 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     __weak IDmeWebVerify *weakself = self;
     [_webNavigationController dismissViewControllerAnimated:YES completion:^{
         [weakself destroyWebView];
-        [weakself clearWebViewCacheAndCookies];
         [weakself setWebNavigationController:nil];
     }];
 }

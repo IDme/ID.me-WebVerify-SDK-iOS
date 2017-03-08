@@ -48,6 +48,10 @@
     [self.tokensByScope removeAllObjects];
 }
 
+-(BOOL)isClean {
+    return [self.tokensByScope count] == 0;
+}
+
 -(void)loadFromKeychain{
     NSError *error;
     NSData* data = [SAMKeychain passwordDataForService:[NSBundle mainBundle].bundleIdentifier account:IDME_KEYCHAIN_DATA_ACCOUNT];
