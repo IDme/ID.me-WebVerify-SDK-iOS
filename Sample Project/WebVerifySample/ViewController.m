@@ -114,31 +114,16 @@
 
     [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
                                                          scope:scope
-                                                   withResults:^(NSDictionary *userProfile, NSError *error) {
-                                                       [self resultsWithUserProfile:userProfile andError:error];
+                                                   withTokenResult:^(NSString *token, NSError *error) {
+                                                       [[IDmeWebVerify sharedInstance] getUserProfileWithScope:scope result:^(NSDictionary * _Nullable userProfile, NSError * _Nullable error) {
+                                                           [self resultsWithUserProfile:userProfile andError:error];
+                                                       }];
                                                    }];
-/*
- OR
-    [[IDmeWebVerify sharedInstance] verifyUserInViewController:self
-                                                  withClientID:clientID
-                                                   redirectURI:redirectURL
-                                                         scope:scope
-                                                   withTokenResult:^(NSDictionary *userProfile, NSError *error, NSString *accessToken) {
- if (error) { // Error
- NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
- _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
- } else { // Verification was successful
- NSLog(@"\nVerification Token:\n %@", accessToken);
- _textView.text = [NSString stringWithFormat:@"%@", accessToken];
- }
-                                                   }];
- */
-
 }
 
 
 - (void)addConnection:(id)sender {
-    [[IDmeWebVerify sharedInstance] registerConnectionInViewController:self scope:scope type:IDWebVerifyConnectionGooglePlus result:^(NSError * _Nullable error) {
+    [[IDmeWebVerify sharedInstance] registerConnectionInViewController:self scope:scope type:IDWebVerifyConnectionLinkedin result:^(NSString * _Nullable token, NSError * _Nullable error) {
         if (error) { // Error
             NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
             _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
@@ -149,7 +134,7 @@
 }
 
 - (void)addAffiliation:(id)sender {
-    [[IDmeWebVerify sharedInstance] registerAffiliationInViewController:self scope:scope type:IDmeWebVerifyAffiliationMilitary result:^(NSError * _Nullable error) {
+    [[IDmeWebVerify sharedInstance] registerAffiliationInViewController:self scope:scope type:IDmeWebVerifyAffiliationGovernment result:^(NSString * _Nullable token, NSError * _Nullable error) {
         if (error) { // Error
             NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
             _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];

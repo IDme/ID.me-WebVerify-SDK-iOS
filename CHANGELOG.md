@@ -2,6 +2,7 @@
 
 ## Unreleased version
 
+- MOB-686: Using SFSafariViewController to authenticate the user.
 - MOB-624: User session cookie saved in SDK
 - MOB-660: Improve error handling in SDK (#27, #29, #30)
 - MOB-438: Support different domains for production and development (#25)

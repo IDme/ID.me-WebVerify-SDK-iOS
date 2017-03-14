@@ -36,5 +36,18 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>IDmeWebVerifyAPIDomainURL</key>
+	<string>https://api.idmelabs.com/</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>org.idme.native</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>org.idme.native</string>
+		</dict>
+	</array>
 </dict>
 </plist>
