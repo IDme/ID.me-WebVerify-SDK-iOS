@@ -17,15 +17,11 @@
 		8E3FE22918B3C729002533DF /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8E3FE22818B3C729002533DF /* Images.xcassets */; };
 		8E3FE25118B3E3B0002533DF /* IDmeWebVerify.m in Sources */ = {isa = PBXBuildFile; fileRef = 8E3FE24E18B3E3B0002533DF /* IDmeWebVerify.m */; };
 		8E3FE25218B3E3B0002533DF /* IDmeWebVerifyNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8E3FE25018B3E3B0002533DF /* IDmeWebVerifyNavigationController.m */; };
-		8F5E340F1E43A1890052E27F /* IDmeConnectionDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F5E340E1E43A1890052E27F /* IDmeConnectionDelegate.m */; };
 		8FA5991F1DFEEA1E0073F8BD /* SAMKeychain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FA5991E1DFEEA1E0073F8BD /* SAMKeychain.framework */; };
 		8FA599201DFEEA1E0073F8BD /* SAMKeychain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8FA5991E1DFEEA1E0073F8BD /* SAMKeychain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8FAA740A1DFB28CB00670130 /* IDmeWebVerifyKeychainData.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FAA74091DFB28CB00670130 /* IDmeWebVerifyKeychainData.m */; };
 		8FEDDECE1E56240100438B72 /* IDmeWebVerify.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 8FEDDECD1E56240100438B72 /* IDmeWebVerify.bundle */; };
-		B22FE8361E64E19300115037 /* IDmeWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = B22FE8351E64E19300115037 /* IDmeWebView.m */; };
 		B22FE8391E65BB7A00115037 /* IDmeReachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B22FE8381E65BB7A00115037 /* IDmeReachability.m */; };
-		B22FE83F1E66141B00115037 /* IDmeWebViewBaseDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B22FE83E1E66141B00115037 /* IDmeWebViewBaseDelegate.m */; };
-		B22FE8421E661B0500115037 /* IDmeAuthenticationDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B22FE8411E661B0500115037 /* IDmeAuthenticationDelegate.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -63,20 +59,12 @@
 		8E3FE24E18B3E3B0002533DF /* IDmeWebVerify.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeWebVerify.m; sourceTree = "<group>"; };
 		8E3FE24F18B3E3B0002533DF /* IDmeWebVerifyNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDmeWebVerifyNavigationController.h; sourceTree = "<group>"; };
 		8E3FE25018B3E3B0002533DF /* IDmeWebVerifyNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeWebVerifyNavigationController.m; sourceTree = "<group>"; };
-		8F5E340D1E43A1890052E27F /* IDmeConnectionDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDmeConnectionDelegate.h; sourceTree = "<group>"; };
-		8F5E340E1E43A1890052E27F /* IDmeConnectionDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeConnectionDelegate.m; sourceTree = "<group>"; };
 		8FA5991E1DFEEA1E0073F8BD /* SAMKeychain.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SAMKeychain.framework; path = ../Carthage/Build/iOS/SAMKeychain.framework; sourceTree = "<group>"; };
 		8FAA74081DFB289500670130 /* IDmeWebVerifyKeychainData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDmeWebVerifyKeychainData.h; sourceTree = "<group>"; };
 		8FAA74091DFB28CB00670130 /* IDmeWebVerifyKeychainData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeWebVerifyKeychainData.m; sourceTree = "<group>"; };
 		8FEDDECD1E56240100438B72 /* IDmeWebVerify.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = IDmeWebVerify.bundle; sourceTree = "<group>"; };
-		B22FE8341E64E19300115037 /* IDmeWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDmeWebView.h; sourceTree = "<group>"; };
-		B22FE8351E64E19300115037 /* IDmeWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeWebView.m; sourceTree = "<group>"; };
 		B22FE8371E65BB7A00115037 /* IDmeReachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDmeReachability.h; sourceTree = "<group>"; };
 		B22FE8381E65BB7A00115037 /* IDmeReachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeReachability.m; sourceTree = "<group>"; };
-		B22FE83D1E66141A00115037 /* IDmeWebViewBaseDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDmeWebViewBaseDelegate.h; sourceTree = "<group>"; };
-		B22FE83E1E66141B00115037 /* IDmeWebViewBaseDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeWebViewBaseDelegate.m; sourceTree = "<group>"; };
-		B22FE8401E661B0500115037 /* IDmeAuthenticationDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDmeAuthenticationDelegate.h; sourceTree = "<group>"; };
-		B22FE8411E661B0500115037 /* IDmeAuthenticationDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeAuthenticationDelegate.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,7 +157,6 @@
 		8E3FE24C18B3E3B0002533DF /* ID.me WebVerify SDK */ = {
 			isa = PBXGroup;
 			children = (
-				B22FE8431E661B3000115037 /* IDmeWebView */,
 				B22FE8371E65BB7A00115037 /* IDmeReachability.h */,
 				B22FE8381E65BB7A00115037 /* IDmeReachability.m */,
 				8E3FE24D18B3E3B0002533DF /* IDmeWebVerify.h */,
@@ -182,21 +169,6 @@
 			);
 			name = "ID.me WebVerify SDK";
 			path = "../../ID.me WebVerify SDK";
-			sourceTree = "<group>";
-		};
-		B22FE8431E661B3000115037 /* IDmeWebView */ = {
-			isa = PBXGroup;
-			children = (
-				B22FE8401E661B0500115037 /* IDmeAuthenticationDelegate.h */,
-				B22FE8411E661B0500115037 /* IDmeAuthenticationDelegate.m */,
-				8F5E340D1E43A1890052E27F /* IDmeConnectionDelegate.h */,
-				8F5E340E1E43A1890052E27F /* IDmeConnectionDelegate.m */,
-				B22FE8341E64E19300115037 /* IDmeWebView.h */,
-				B22FE8351E64E19300115037 /* IDmeWebView.m */,
-				B22FE83D1E66141A00115037 /* IDmeWebViewBaseDelegate.h */,
-				B22FE83E1E66141B00115037 /* IDmeWebViewBaseDelegate.m */,
-			);
-			name = IDmeWebView;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -271,17 +243,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B22FE8421E661B0500115037 /* IDmeAuthenticationDelegate.m in Sources */,
 				8E3FE25118B3E3B0002533DF /* IDmeWebVerify.m in Sources */,
 				8E3FE22718B3C729002533DF /* ViewController.m in Sources */,
 				8E3FE25218B3E3B0002533DF /* IDmeWebVerifyNavigationController.m in Sources */,
-				8F5E340F1E43A1890052E27F /* IDmeConnectionDelegate.m in Sources */,
 				8E3FE22118B3C729002533DF /* AppDelegate.m in Sources */,
 				8FAA740A1DFB28CB00670130 /* IDmeWebVerifyKeychainData.m in Sources */,
 				8E3FE21D18B3C729002533DF /* main.m in Sources */,
 				B22FE8391E65BB7A00115037 /* IDmeReachability.m in Sources */,
-				B22FE83F1E66141B00115037 /* IDmeWebViewBaseDelegate.m in Sources */,
-				B22FE8361E64E19300115037 /* IDmeWebView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

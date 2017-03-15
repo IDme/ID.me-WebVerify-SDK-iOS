@@ -25,7 +25,7 @@
 
     clientID = @"<your_client_id>";
     clientSecret = @"<your_client_secret>";
-    redirectURL = @"<your_url>";
+    redirectURL = @"<your_custom_scheme://callback>";
     scope = @"<your_handle>";
 
     [super viewDidLoad];
@@ -123,7 +123,7 @@
 
 
 - (void)addConnection:(id)sender {
-    [[IDmeWebVerify sharedInstance] registerConnectionInViewController:self scope:scope type:IDWebVerifyConnectionLinkedin result:^(NSString * _Nullable token, NSError * _Nullable error) {
+    [[IDmeWebVerify sharedInstance] registerConnectionInViewController:self scope:scope type:IDWebVerifyConnectionGooglePlus result:^(NSString * _Nullable token, NSError * _Nullable error) {
         if (error) { // Error
             NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
             _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
@@ -134,7 +134,7 @@
 }
 
 - (void)addAffiliation:(id)sender {
-    [[IDmeWebVerify sharedInstance] registerAffiliationInViewController:self scope:scope type:IDmeWebVerifyAffiliationGovernment result:^(NSString * _Nullable token, NSError * _Nullable error) {
+    [[IDmeWebVerify sharedInstance] registerAffiliationInViewController:self scope:scope type:IDmeWebVerifyAffiliationMilitary result:^(NSString * _Nullable token, NSError * _Nullable error) {
         if (error) { // Error
             NSLog(@"Verification Error %ld: %@", error.code, error.localizedDescription);
             _textView.text = [NSString stringWithFormat:@"Error code: %ld\n\n%@", error.code, error.localizedDescription];
