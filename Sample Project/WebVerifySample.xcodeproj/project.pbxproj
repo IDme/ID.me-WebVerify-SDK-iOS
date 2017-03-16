@@ -22,6 +22,7 @@
 		8FAA740A1DFB28CB00670130 /* IDmeWebVerifyKeychainData.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FAA74091DFB28CB00670130 /* IDmeWebVerifyKeychainData.m */; };
 		8FEDDECE1E56240100438B72 /* IDmeWebVerify.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 8FEDDECD1E56240100438B72 /* IDmeWebVerify.bundle */; };
 		B22FE8391E65BB7A00115037 /* IDmeReachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B22FE8381E65BB7A00115037 /* IDmeReachability.m */; };
+		B271C74D1E7AE09200B6CF46 /* IDmePKCEUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B271C74C1E7AE09200B6CF46 /* IDmePKCEUtils.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -65,6 +66,8 @@
 		8FEDDECD1E56240100438B72 /* IDmeWebVerify.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = IDmeWebVerify.bundle; sourceTree = "<group>"; };
 		B22FE8371E65BB7A00115037 /* IDmeReachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDmeReachability.h; sourceTree = "<group>"; };
 		B22FE8381E65BB7A00115037 /* IDmeReachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmeReachability.m; sourceTree = "<group>"; };
+		B271C74B1E7AE09200B6CF46 /* IDmePKCEUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDmePKCEUtils.h; sourceTree = "<group>"; };
+		B271C74C1E7AE09200B6CF46 /* IDmePKCEUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IDmePKCEUtils.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +169,8 @@
 				8FAA74081DFB289500670130 /* IDmeWebVerifyKeychainData.h */,
 				8FAA74091DFB28CB00670130 /* IDmeWebVerifyKeychainData.m */,
 				8FEDDECD1E56240100438B72 /* IDmeWebVerify.bundle */,
+				B271C74B1E7AE09200B6CF46 /* IDmePKCEUtils.h */,
+				B271C74C1E7AE09200B6CF46 /* IDmePKCEUtils.m */,
 			);
 			name = "ID.me WebVerify SDK";
 			path = "../../ID.me WebVerify SDK";
@@ -245,6 +250,7 @@
 			files = (
 				8E3FE25118B3E3B0002533DF /* IDmeWebVerify.m in Sources */,
 				8E3FE22718B3C729002533DF /* ViewController.m in Sources */,
+				B271C74D1E7AE09200B6CF46 /* IDmePKCEUtils.m in Sources */,
 				8E3FE25218B3E3B0002533DF /* IDmeWebVerifyNavigationController.m in Sources */,
 				8E3FE22118B3C729002533DF /* AppDelegate.m in Sources */,
 				8FAA740A1DFB28CB00670130 /* IDmeWebVerifyKeychainData.m in Sources */,
