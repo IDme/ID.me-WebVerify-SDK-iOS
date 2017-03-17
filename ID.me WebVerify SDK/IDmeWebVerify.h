@@ -19,7 +19,6 @@
 
 typedef void (^IDmeVerifyWebVerifyProfileResults)(NSDictionary  * _Nullable userProfile, NSError  * _Nullable error);
 typedef void (^IDmeVerifyWebVerifyTokenResults)(NSString *  _Nullable accessToken, NSError  * _Nullable error);
-typedef void (^IDmeVerifyWebVerifyConnectionResults)(NSError  * _Nullable error);
 
 /// This typedef differentiates errors that may occur when authentication a user
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
@@ -99,15 +98,6 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
 /**
  @param externalViewController The viewController which will present the modal navigationController
  @param scope The type of group verification that should be presented.
- @param webVerificationResults A block that returns an NSDictionary object and an NSError object. The verified user's profile is stored in an @c NSDictionary object as @c JSON data. If no data was returned, or an error occured, @c NSDictionary is @c nil and @c NSError returns an error code and localized description of the specific error that occured.
- */
-- (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
-                             scope:(NSString * _Nonnull)scope
-                       withResults:(IDmeVerifyWebVerifyProfileResults _Nonnull)webVerificationResults;
-
-/**
- @param externalViewController The viewController which will present the modal navigationController
- @param scope The type of group verification that should be presented.
  @param webVerificationResults A block that returns an NSString object representing a valid access token or an NSError object.
  */
 - (void)verifyUserInViewController:(UIViewController * _Nonnull)externalViewController
@@ -149,11 +139,41 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
 /**
  Registers a new connection for the user.
  */
-- (void)registerConnectionInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyConnection)type result:(IDmeVerifyWebVerifyConnectionResults _Nonnull)callback;
+- (void)registerConnectionInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyConnection)type result:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback;
 
 /**
  Registers a new ID for the user.
  */
-- (void)registerAffiliationInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyAffiliation)type result:(IDmeVerifyWebVerifyConnectionResults _Nonnull)callback;
+- (void)registerAffiliationInViewController:(UIViewController * _Nonnull)viewController scope:(NSString * _Nonnull)scope type:(IDmeWebVerifyAffiliation)type result:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback;
+
+/**
+ Call this method from the [UIApplicationDelegate application:openURL:sourceApplication:annotation:] method
+ of the AppDelegate for your app. It should be invoked for the proper processing of responses during interaction
+ with the native Facebook app or Safari as part of SSO authorization flow or Facebook dialogs.
+ - Parameter application: The application as passed to [UIApplicationDelegate application:openURL:sourceApplication:annotation:].
+ - Parameter url: The URL as passed to [UIApplicationDelegate application:openURL:sourceApplication:annotation:].
+ - Parameter sourceApplication: The sourceApplication as passed to [UIApplicationDelegate application:openURL:sourceApplication:annotation:].
+ - Parameter annotation: The annotation as passed to [UIApplicationDelegate application:openURL:sourceApplication:annotation:].
+ - Returns: YES if the url was intended for the IDmeWebVerify SDK, NO if not.
+ */
+- (BOOL)application:(UIApplication *_Nonnull)application
+            openURL:(NSURL *_Nonnull)url
+  sourceApplication:(NSString *_Nonnull)sourceApplication
+         annotation:(id _Nonnull)annotation;
+
+#if __IPHONE_OS_VERSION_MAX_ALLOWED > __IPHONE_9_3
+/**
+ Call this method from the [UIApplicationDelegate application:openURL:options:] method
+ of the AppDelegate for your app. It should be invoked for the proper processing of responses during interaction
+ with the native Facebook app or Safari as part of SSO authorization flow or Facebook dialogs.
+ - Parameter application: The application as passed to [UIApplicationDelegate application:openURL:options:].
+ - Parameter url: The URL as passed to [UIApplicationDelegate application:openURL:options:].
+ - Parameter options: The options dictionary as passed to [UIApplicationDelegate application:openURL:options:].
+ - Returns: YES if the url was intended for the IDmeWebVerify SDK, NO if not.
+ */
+- (BOOL)application:(UIApplication *_Nonnull)application
+            openURL:(NSURL *_Nonnull)url
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> * _Nonnull)options;
+#endif
 
 @end
