@@ -112,7 +112,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                              scope:(NSString *)scope
                    withTokenResult:(IDmeVerifyWebVerifyTokenResults)webVerificationResults {
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
-    NSAssert(self.safariViewController == nil, @"There is an authentication flow in progress. You should not call IDmeWebVerify.verifyUserInViewController:scope:withTokenResult until the previous has finished");
+    NSAssert(![self isAuthenticationFlowInProgress], @"There is an authentication flow in progress. You should not call IDmeWebVerify.verifyUserInViewController:scope:withTokenResult until the previous has finished");
 
     NSString *stringUrl = [NSString stringWithFormat:[self urlStringWithQueryString:IDME_WEB_VERIFY_GET_AUTH_URI],
                            self.clientID,
@@ -131,7 +131,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                              loginType:(IDmeWebVerifyLoginType)loginType
                        withTokenResult:(IDmeVerifyWebVerifyTokenResults)webVerificationResults {
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
-    NSAssert(self.safariViewController == nil, @"There is an authentication flow in progress. You should not call IDmeWebVerify.verifyUserInViewController:scope:withTokenResult until the previous has finished");
+    NSAssert(![self isAuthenticationFlowInProgress], @"There is an authentication flow in progress. You should not call IDmeWebVerify.verifyUserInViewController:scope:withTokenResult until the previous has finished");
 
     NSString *stringUrl = [NSString stringWithFormat:[self urlStringWithQueryString:IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN],
                            self.clientID,
@@ -152,7 +152,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                                      type:(IDmeWebVerifyConnection)type
                                    result:(IDmeVerifyWebVerifyTokenResults)callback {
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
-    NSAssert(self.safariViewController == nil, @"There is an authentication flow in progress. You should not call IDmeWebVerify.verifyUserInViewController:scope:withTokenResult until the previous has finished");
+    NSAssert(![self isAuthenticationFlowInProgress], @"There is an authentication flow in progress. You should not call IDmeWebVerify.verifyUserInViewController:scope:withTokenResult until the previous has finished");
 
     NSString *stringUrl = [NSString stringWithFormat:[self urlStringWithQueryString:IDME_WEB_VERIFY_REGISTER_CONNECTION_URI],
                            self.clientID,
@@ -172,7 +172,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
                              type:(IDmeWebVerifyAffiliation)type
                            result:(IDmeVerifyWebVerifyTokenResults)callback {
     NSAssert(self.clientID != nil, @"You should initialize the SDK before making requests. Call IDmeWebVerify.initializeWithClientID:redirectURI");
-    NSAssert(self.safariViewController == nil, @"There is an authentication flow in progress. You should not call IDmeWebVerify.verifyUserInViewController:scope:withTokenResult until the previous has finished");
+    NSAssert(![self isAuthenticationFlowInProgress], @"There is an authentication flow in progress. You should not call IDmeWebVerify.verifyUserInViewController:scope:withTokenResult until the previous has finished");
 
     NSString *stringUrl = [NSString stringWithFormat:[self urlStringWithQueryString:IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI],
                            self.clientID,
@@ -532,6 +532,12 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 #pragma mark - Accessor Methods
 - (NSString * _Nullable)clientID {
     return (_clientID) ? _clientID : nil;
+}
+
+#pragma mark - Other auxiliary functions
+
+- (BOOL)isAuthenticationFlowInProgress {
+    return _safariViewController != nil || _webVerificationResults != nil;
 }
 
 #pragma mark - Helpers - Errors
