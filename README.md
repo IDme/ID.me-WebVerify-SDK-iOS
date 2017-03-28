@@ -3,15 +3,15 @@ The ID.me WebVerify SDK for iOS is a library that allows you to verify a user's 
 
 ## Release Information
 
-- **SDK Version:** 3.2.0 (June 24, 2016)
+- **SDK Version:** 4.0.0 (March 28, 2017)
 - **Maintained By:** [ID.me](http://github.com/IDme)
 
 For more information please email us at mobile@id.me or visit us at http://developer.id.me.
 
-## Changelog (3.2.0)
-- Changed parameter from affiliationType to scope (NSString)
+## Changelog
+The changelog can be found in [CHANGELOG.md](https://github.com/IDme/ID.me-WebVerify-SDK-iOS/blob/master/CHANGELOG.md)
 
-## Download
+## Installation
 
 Get it using CocoaPods
 
@@ -19,15 +19,77 @@ Get it using CocoaPods
 pod 'IDmeWebVerify'
 ```
 
-or download it on Github.
+or download it from Github and add it to your Xcode project.
 
 ## Setup
-1. Drag the **ID.me WebVerify SDK** folder into your project. This will add the following files:
-	- `IDmeWebVerify.h`
-	- `IDmeWebVerifyNavigationController.h`
-2. Import `IDmeWebVerify.h` into one of your projects, preferably an instance or subclassed instance of `UIViewController`.
+### Step 1
+If you installed the SDK through Cocoapods you can skip this step. Drag the downloaded files to your Xcode project. If you are working with Swift you will have to import `IDmeWebVerify.h` in your ObjC Bridging Header. You will also have to somehow import [SAMKeychain](https://github.com/soffes/SAMKeychain) to your project as this SDK depends on it.
+
+### Step 2
+You must call `IDmeWebVerify.initialize(withClientID: String, clientSecret: String, redirectURI: String)` before using the SDK. You can do it in `application(didFinishLaunchingWithOptions:)` for example.
+
+### Step 3
+You must handle the redirect calls from the SDK. For this you have to add your `redirectURI` as handled URL scheme. Go to *Project Navigator* -> *Select your target* -> *Info* -> *URL Types* -> *New* and add your redirectURI's scheme in *URL Schemes*.
+For example: if your redirectURI is `my_custom_scheme://callback`, enter `my_custom_scheme` in *URL Schemes*.
+
+### Step 4
+In your `AppDelegate` you must handle the redirectURL when it gets called. You do this by defining the corresponding delegate functions and then calling `IDmeWebVerifySDK` to handle the URL.
+
+If your app supports iOS 9 and above add: 
+
+```swift
+func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+    let handled = IDmeWebVerify.sharedInstance().application(app, open: url, options: options)
+
+    if !handled {
+        // do something else
+    }
+    return handled
+}
+```
+
+If your app suuports a lower iOS version than 9.0 then you must also add these methods:
+```swift
+func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
+    let handled = IDmeWebVerify.sharedInstance().application(app, open: url, options: options)
+
+    if !handled {
+        // do something else
+    }
+    return handled
+}
+
+func application(_ application: UIApplication, handleOpen url: URL) -> Bool {
+    let handled = IDmeWebVerify.sharedInstance().application(app, open: url, options: options)
+
+    if !handled {
+        // do something else
+    }
+    return handled
+}
+```
+
+## Migrating from 3.2 to 4.0
+
+There were several changes introduced in version 4.0.
+These are some of the major changes you need to take into account when migrating:
+* You must now call `IDmeWebVerify.initialize` before using the SDK.
+* `verifyUserInViewController:withClientID:redirectURI:scope:withResults` has been removed. You should now call `verifyUser(in: UIViewController, scope: String, withTokenResult: IDmeVerifyWebVerifyTokenResults)` and then `getUserProfile(withScope: String?, result: IDmeVerifyWebVerifyProfileResults)` in the result callback.
+* The SDK handles the access and refresh tokens by storing them in the Keychain. As the access tokens are short-lived it can happen quite frequently that the stored access token has expired and needs to be refreshed. That is why you have to call `IDmeWebVerify.sharedInstance().getAccessToken(withScope: String, forceRefreshing: Bool, results: IDmeVerifyWebVerifyTokenResults)` which includes a callback with the token (refreshed if it had expired) or an error. You should call this method before each of your requests to the ID.me backend.
+The most common errors are that the token could not be refreshed and that there is no access token stored for the specified `scope` (happens before login).
+* There are also some new functions you can see in `IDmeWebVerify.h`
+
+## Examples
+To see a working example you can:
+- Download this repository
+- Open `WebVerifySample.xcodeproj`
+- Set your `clientID`, `clientSecret`, `redirectURI` and `scope` in `ViewController.m`
+- Replace `your_custom_scheme` with your `redirectURI` in `WebVerifySample-Info.plist` -> `URL Types` (or through *Project Navigator*)
 
 ## Execution
+Verification occurs through a SFSafariViewController which will open Safari for the user to log in. You must call `verifyUser(in: UIViewController, scope: String, withTokenResult: IDmeVerifyWebVerifyTokenResults)` to launch a SFSafariViewController for the user to authenticate. Take care not to call this method while another instance of that verification process is still under way as it will throw an exception.
+
+<!--
 Verification occurs through a modal view controller. The modal view controller is a navigation controller initialized with a web-view. The entire OAuth flow occurs through the web-view. Upon successful completion, the modal will automatically be dismissed, and a JSON object in the form of an NSDictionary object containing your user's verificaiton information will be returned to you.
 
 To launch the modal, the following method can be called in the view controller class that will be presenting the modal:
@@ -124,6 +186,8 @@ The following properties of the NSError object should be referenced by your app 
 
 - `code`: The error code of the specific issue. The value is defined in the `IDmeWebVerifyErrorCode` typedef, and should be in the 100s.
 -  `localizedDescription`: A detailed description of the error.
+
+-->
 
 ## Internet Connectivity
 Internet connectivity is required, as the verificaiton occurs through a webView.
