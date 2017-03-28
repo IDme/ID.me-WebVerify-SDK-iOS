@@ -10,7 +10,6 @@
 
 #import "IDmePKCEUtils.h"
 #import "IDmeReachability.h"
-#import "IDmeWebVerifyNavigationController.h"
 #import "IDmeWebVerifyKeychainData.h"
 
 #import <SafariServices/SafariServices.h>
