@@ -3,36 +3,52 @@ The ID.me WebVerify SDK for iOS is a library that allows you to verify a user's 
 
 ## Release Information
 
-- **SDK Version:** 4.0.0 (March 28, 2017)
+- **SDK Version:** 4.0.0 (March 29, 2017)
 - **Maintained By:** [ID.me](http://github.com/IDme)
 
 For more information please email us at mobile@id.me or visit us at http://developer.id.me.
 
 ## Changelog
-The changelog can be found in [CHANGELOG.md](https://github.com/IDme/ID.me-WebVerify-SDK-iOS/blob/master/CHANGELOG.md)
+The changelog can be found in [CHANGELOG.md](CHANGELOG.md)
 
 ## Installation
 
-Get it using CocoaPods
+### Using Cocoapods
+Simply add this line to your Podfile:
 
 ```
 pod 'IDmeWebVerify'
 ```
 
-or download it from Github and add it to your Xcode project.
+### Manual installation
+
+* Download it from Github and drag the downloaded files to your Xcode project.
+* If you are working with Swift you will have to import `IDmeWebVerify.h` in your ObjC Bridging Header.
+* Import [SAMKeychain](https://github.com/soffes/SAMKeychain) as this SDK depends on it. You can also drag it to your project or use a dependency manager to import it.
 
 ## Setup
-### Step 1
-If you installed the SDK through Cocoapods you can skip this step. Drag the downloaded files to your Xcode project. If you are working with Swift you will have to import `IDmeWebVerify.h` in your ObjC Bridging Header. You will also have to somehow import [SAMKeychain](https://github.com/soffes/SAMKeychain) to your project as this SDK depends on it.
 
-### Step 2
+### Step 1
 You must call `IDmeWebVerify.initialize(withClientID: String, clientSecret: String, redirectURI: String)` before using the SDK. You can do it in `application(didFinishLaunchingWithOptions:)` for example.
 
-### Step 3
-You must handle the redirect calls from the SDK. For this you have to add your `redirectURI` as handled URL scheme. Go to *Project Navigator* -> *Select your target* -> *Info* -> *URL Types* -> *New* and add your redirectURI's scheme in *URL Schemes*.
-For example: if your redirectURI is `my_custom_scheme://callback`, enter `my_custom_scheme` in *URL Schemes*.
+```swift
+import IDmeWebVerify
 
-### Step 4
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+      IDmeWebVerify.initialize(withClientID: "<client_id>", clientSecret: "<client_secret>", redirectURI: "<custom_scheme://callback>")
+    }
+}
+```
+
+You should get the parameters `<client_id>`, `<client_secret>`, `<custom_scheme://callback>` at http://developer.id.me.
+
+### Step 2
+You must handle the redirect calls from the SDK. For this you have to register your `redirectURI's` URL scheme for your app. Go to *Project Navigator* -> *Select your target* -> *Info* -> *URL Types* -> *New* and add your redirectURI's scheme in *URL Schemes*.
+Example: if your redirectURI is `my_custom_scheme://callback`, enter `my_custom_scheme` in *URL Schemes*.
+
+### Step 3
 In your `AppDelegate` you must handle the redirectURL when it gets called. You do this by defining the corresponding delegate functions and then calling `IDmeWebVerifySDK` to handle the URL.
 
 If your app supports iOS 9 and above add: 
@@ -48,10 +64,10 @@ func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpe
 }
 ```
 
-If your app suuports a lower iOS version than 9.0 then you must also add these methods:
+If your app supports a lower iOS version than 9.0 then you must also add these methods:
 ```swift
 func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
-    let handled = IDmeWebVerify.sharedInstance().application(app, open: url, options: options)
+    let handled = IDmeWebVerify.sharedInstance().application(application, open: url, sourceApplication: sourceApplication, annotation: annotation)
 
     if !handled {
         // do something else
@@ -60,7 +76,7 @@ func application(_ application: UIApplication, open url: URL, sourceApplication:
 }
 
 func application(_ application: UIApplication, handleOpen url: URL) -> Bool {
-    let handled = IDmeWebVerify.sharedInstance().application(app, open: url, options: options)
+    let handled = IDmeWebVerify.sharedInstance().application(app, open: url, options: [:])
 
     if !handled {
         // do something else
@@ -87,7 +103,9 @@ To see a working example you can:
 - Replace `your_custom_scheme` with your `redirectURI` in `WebVerifySample-Info.plist` -> `URL Types` (or through *Project Navigator*)
 
 ## Execution
-Verification occurs through a SFSafariViewController which will open Safari for the user to log in. You must call `verifyUser(in: UIViewController, scope: String, withTokenResult: IDmeVerifyWebVerifyTokenResults)` to launch a SFSafariViewController for the user to authenticate. Take care not to call this method while another instance of that verification process is still under way as it will throw an exception.
+Verification occurs through a SFSafariViewController to comply with the [best practices for OAuth in iOS](https://tools.ietf.org/html/draft-ietf-oauth-native-apps-03).
+This means the SDK will open Safari for the user to log in. 
+You must call `verifyUser(in: UIViewController, scope: String, withTokenResult: IDmeVerifyWebVerifyTokenResults)` to launch a SFSafariViewController for the user to authenticate. Take care not to call this method while another instance of that verification process is still under way as it will throw an exception.
 
 <!--
 Verification occurs through a modal view controller. The modal view controller is a navigation controller initialized with a web-view. The entire OAuth flow occurs through the web-view. Upon successful completion, the modal will automatically be dismissed, and a JSON object in the form of an NSDictionary object containing your user's verificaiton information will be returned to you.

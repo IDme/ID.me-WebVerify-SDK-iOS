@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased version
+## 4.0.0 (29/03/2017)
 
 - MOB-686: Using SFSafariViewController to authenticate the user.
 - MOB-624: User session cookie saved in SDK
