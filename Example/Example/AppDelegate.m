@@ -7,8 +7,8 @@
 //
 
 #import "AppDelegate.h"
-#import "ViewController.h"
 #import "IDmeWebVerify.h"
+#import "ViewController.h"
 
 @implementation AppDelegate
 
@@ -28,7 +28,6 @@
 -(BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
     return [[IDmeWebVerify sharedInstance] application:app openURL:url options:options];
-
 }
 
 -(BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation

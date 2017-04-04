@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.0.1 (04/04/2017)
+
+- MOB-721: Carthage support
+
 ## 4.0.0 (29/03/2017)
 
 - MOB-686: Using SFSafariViewController to authenticate the user.
