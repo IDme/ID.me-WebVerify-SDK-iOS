@@ -91,7 +91,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
 
 /**
  @param clientID The clientID provided by ID.me when registering the app at @b http://developer.id.me
- @param redierectURI The redirectURI provided to ID.me when registering your app at @b http://developer.id.me
+ @param redirectURI The redirectURI provided to ID.me when registering your app at @b http://developer.id.me
  */
 + (void)initializeWithClientID:(NSString * _Nonnull)clientID clientSecret:(NSString * _Nonnull)clientSecret redirectURI:(NSString * _Nonnull)redirectURI;
 
@@ -126,7 +126,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
 /**
  Returns a valid access token. If the currently saved access token is valid it will be returned. If not, then it will be refreshed.
  @param scope The type of token to be used. If nil then the last token will be used
- @param forceRefreshing Force the SDK to refresh the token and do not use the current one.
+ @param force Force the SDK to refresh the token and do not use the current one.
  @param callback A block that returns an NSString object representing a valid access token or an NSError object.
  */
 - (void)getAccessTokenWithScope:(NSString* _Nullable)scope forceRefreshing:(BOOL)force result:(IDmeVerifyWebVerifyTokenResults _Nonnull)callback;
