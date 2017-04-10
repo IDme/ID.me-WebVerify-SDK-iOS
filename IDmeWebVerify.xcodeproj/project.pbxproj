@@ -110,7 +110,6 @@
 				B265B1871E93E97400833DC5 /* Sources */,
 				B265B1881E93E97400833DC5 /* Frameworks */,
 				B265B1891E93E97400833DC5 /* Headers */,
-				B283E99A1E93FD1900A28318 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -152,23 +151,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		B283E99A1E93FD1900A28318 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/SAMKeychain.framework",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		B265B1871E93E97400833DC5 /* Sources */ = {

@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.0.2 (04/10/2017)
+
+- MOB-726: fixed issue embedding dependency frameworks
+
 ## 4.0.1 (04/04/2017)
 
 - MOB-721: Carthage support
