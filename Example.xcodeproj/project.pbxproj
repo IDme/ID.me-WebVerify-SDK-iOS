@@ -10,14 +10,23 @@
 		8E3FE21118B3C729002533DF /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E3FE21018B3C729002533DF /* Foundation.framework */; };
 		8E3FE21318B3C729002533DF /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E3FE21218B3C729002533DF /* CoreGraphics.framework */; };
 		8E3FE21518B3C729002533DF /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E3FE21418B3C729002533DF /* UIKit.framework */; };
+		B212A5331E9BE7E800011258 /* IDmeWebVerify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B265B1D41E93F27D00833DC5 /* IDmeWebVerify.framework */; };
+		B212A5341E9BE7E800011258 /* IDmeWebVerify.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B265B1D41E93F27D00833DC5 /* IDmeWebVerify.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		B212A53E1E9BE89400011258 /* SAMKeychain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B212A53D1E9BE89400011258 /* SAMKeychain.framework */; };
 		B265B1761E93E57A00833DC5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B265B1711E93E57A00833DC5 /* AppDelegate.m */; };
 		B265B1771E93E57A00833DC5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B265B1721E93E57A00833DC5 /* ViewController.m */; };
 		B265B1781E93E57A00833DC5 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B265B1741E93E57A00833DC5 /* Images.xcassets */; };
 		B265B1811E93E59600833DC5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B265B17D1E93E59600833DC5 /* main.m */; };
-		B265B1D51E93F29700833DC5 /* IDmeWebVerify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B265B1D41E93F27D00833DC5 /* IDmeWebVerify.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		B212A5351E9BE7E800011258 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B265B1CF1E93F27C00833DC5 /* IDmeWebVerify.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = B265B18B1E93E97400833DC5;
+			remoteInfo = IDmeWebVerify;
+		};
 		B265B1D31E93F27D00833DC5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B265B1CF1E93F27C00833DC5 /* IDmeWebVerify.xcodeproj */;
@@ -27,11 +36,26 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		B212A5371E9BE7E800011258 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B212A5341E9BE7E800011258 /* IDmeWebVerify.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		8E3FE20D18B3C729002533DF /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E3FE21018B3C729002533DF /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		8E3FE21218B3C729002533DF /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		8E3FE21418B3C729002533DF /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		B212A53D1E9BE89400011258 /* SAMKeychain.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SAMKeychain.framework; path = Carthage/Build/iOS/SAMKeychain.framework; sourceTree = "<group>"; };
 		B265B1711E93E57A00833DC5 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Example/Example/AppDelegate.m; sourceTree = SOURCE_ROOT; };
 		B265B1721E93E57A00833DC5 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ViewController.m; path = Example/Example/ViewController.m; sourceTree = SOURCE_ROOT; };
 		B265B1731E93E57A00833DC5 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Example/Example/AppDelegate.h; sourceTree = SOURCE_ROOT; };
@@ -48,10 +72,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B265B1D51E93F29700833DC5 /* IDmeWebVerify.framework in Frameworks */,
+				B212A53E1E9BE89400011258 /* SAMKeychain.framework in Frameworks */,
 				8E3FE21318B3C729002533DF /* CoreGraphics.framework in Frameworks */,
 				8E3FE21518B3C729002533DF /* UIKit.framework in Frameworks */,
 				8E3FE21118B3C729002533DF /* Foundation.framework in Frameworks */,
+				B212A5331E9BE7E800011258 /* IDmeWebVerify.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,8 +104,9 @@
 		8E3FE20F18B3C729002533DF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				8E3FE21018B3C729002533DF /* Foundation.framework */,
 				8E3FE21218B3C729002533DF /* CoreGraphics.framework */,
+				8E3FE21018B3C729002533DF /* Foundation.framework */,
+				B212A53D1E9BE89400011258 /* SAMKeychain.framework */,
 				8E3FE21418B3C729002533DF /* UIKit.framework */,
 			);
 			name = Frameworks;
@@ -128,10 +154,13 @@
 				8E3FE20918B3C729002533DF /* Sources */,
 				8E3FE20A18B3C729002533DF /* Frameworks */,
 				8E3FE20B18B3C729002533DF /* Resources */,
+				B212A5311E9BE53B00011258 /* ShellScript */,
+				B212A5371E9BE7E800011258 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B212A5361E9BE7E800011258 /* PBXTargetDependency */,
 			);
 			name = Example;
 			productName = WebVerifySample;
@@ -197,6 +226,23 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		B212A5311E9BE53B00011258 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/iOS/SAMKeychain.framework",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		8E3FE20918B3C729002533DF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -209,6 +255,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B212A5361E9BE7E800011258 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = IDmeWebVerify;
+			targetProxy = B212A5351E9BE7E800011258 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		8E3FE23D18B3C729002533DF /* Debug */ = {

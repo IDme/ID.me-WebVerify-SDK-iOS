@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "IDmeWebVerify"
-  s.version      = "4.0.1"
+  s.version      = "4.0.2"
   s.summary      = "An iOS library that allows you to verify a user's group affiliation status using ID.me's platform."
   s.homepage     = "https://github.com/IDme/ID.me-WebVerify-SDK-iOS"
   s.platform     = :ios, '8.0'
