@@ -19,6 +19,7 @@
 
 typedef void (^IDmeVerifyWebVerifyProfileResults)(NSDictionary  * _Nullable userProfile, NSError  * _Nullable error);
 typedef void (^IDmeVerifyWebVerifyTokenResults)(NSString *  _Nullable accessToken, NSError  * _Nullable error);
+typedef void (^IDmeVerifyWebLogoutCallback)(void);
 
 /// This typedef differentiates errors that may occur when authentication a user
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyErrorCode)
@@ -133,8 +134,10 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
 
 /**
  Invalidates and deletes all tokens stored by the SDK.
+ @param externalViewController A view controller used to present a web browser which will clear the current session
+ @param callback A block that will be called when the session is deleted
  */
-- (void)logout;
+- (void)logoutInViewController:(UIViewController *)externalViewController callback:(IDmeVerifyWebLogoutCallback _Nonnull)callback;
 
 /**
  Registers a new connection for the user.
