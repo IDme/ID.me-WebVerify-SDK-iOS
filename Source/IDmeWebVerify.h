@@ -68,6 +68,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyConnection)
 typedef NS_ENUM(NSUInteger, IDmeWebVerifyAffiliation)
 {
     IDmeWebVerifyAffiliationGovernment,
+    IDmeWebVerifyAffiliationMedical,
     IDmeWebVerifyAffiliationMilitary,
     IDmeWebVerifyAffiliationResponder,
     IDmeWebVerifyAffiliationStudent,

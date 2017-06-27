@@ -617,6 +617,9 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 
 - (NSString * _Nonnull)stringForAffiliation:(IDmeWebVerifyAffiliation)type {
     switch (type) {
+        case IDmeWebVerifyAffiliationMedical:
+            return @"medical";
+            break;
         case IDmeWebVerifyAffiliationGovernment:
             return @"government";
             break;
