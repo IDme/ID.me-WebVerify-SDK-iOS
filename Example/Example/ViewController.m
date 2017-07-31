@@ -56,6 +56,14 @@
     [button.layer setCornerRadius:5.0f];
     [self.view addSubview:button];
 
+    UIButton *logoutButton = [UIButton new];
+    [logoutButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [logoutButton setTitle:@"Logout" forState:UIControlStateNormal];
+    [logoutButton setBackgroundColor:[UIColor lightGrayColor]];
+    [logoutButton addTarget:self action:@selector(logout:) forControlEvents:UIControlEventTouchUpInside];
+    [logoutButton.layer setCornerRadius:5.0f];
+    [self.view addSubview:logoutButton];
+
     UIButton *loginButton = [UIButton new];
     [loginButton setTranslatesAutoresizingMaskIntoConstraints:NO];
     [loginButton setTitle:@"Add connection" forState:UIControlStateNormal];
@@ -78,7 +86,7 @@
     NSNumber *buttonHeight = @40;
     NSNumber *textViewHeight = @250;
     NSDictionary *metrics = NSDictionaryOfVariableBindings(horizontalButtonPadding, verticalButtonSeparator, buttonHeight, textViewHeight);
-    NSDictionary *views = NSDictionaryOfVariableBindings(textView, button, loginButton, idButton);
+    NSDictionary *views = NSDictionaryOfVariableBindings(textView, button, loginButton, logoutButton, idButton);
 
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-horizontalButtonPadding-[button]-horizontalButtonPadding-|"
                                                                       options:NSLayoutFormatAlignAllBaseline
@@ -86,6 +94,11 @@
                                                                         views:views]];
 
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-horizontalButtonPadding-[loginButton]-horizontalButtonPadding-|"
+                                                                      options:NSLayoutFormatAlignAllBaseline
+                                                                      metrics:metrics
+                                                                        views:views]];
+
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-horizontalButtonPadding-[logoutButton]-horizontalButtonPadding-|"
                                                                       options:NSLayoutFormatAlignAllBaseline
                                                                       metrics:metrics
                                                                         views:views]];
@@ -100,7 +113,7 @@
                                                                       metrics:metrics
                                                                         views:views]];
     
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-verticalButtonSeparator-[textView(textViewHeight)]-verticalButtonSeparator-[button(buttonHeight)]-verticalButtonSeparator-[loginButton(buttonHeight)]-verticalButtonSeparator-[idButton(buttonHeight)]"
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-verticalButtonSeparator-[textView(textViewHeight)]-verticalButtonSeparator-[button(buttonHeight)]-verticalButtonSeparator-[loginButton(buttonHeight)]-verticalButtonSeparator-[logoutButton(buttonHeight)]-verticalButtonSeparator-[idButton(buttonHeight)]"
                                                                       options:0
                                                                       metrics:metrics
                                                                         views:views]];
@@ -141,6 +154,12 @@
         } else { // Verification was successful
             _textView.text = @"Successfully added Troop ID";
         }
+    }];
+}
+
+- (void)logout:(id)sender {
+    [[IDmeWebVerify sharedInstance] logoutInViewController:self callback:^{
+        _textView.text = @"Successfully logged out";
     }];
 }
 

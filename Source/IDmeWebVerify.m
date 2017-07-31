@@ -21,6 +21,7 @@
 #define IDME_WEB_VERIFY_REGISTER_CONNECTION_URI         @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&op=signin&scope=%@&connect=%@"
 #define IDME_WEB_VERIFY_REGISTER_AFFILIATION_URI        @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@"
 #define IDME_WEB_VERIFY_SIGN_UP_OR_LOGIN                @"oauth/authorize?client_id=%@&redirect_uri=%@&response_type=code&scope=%@&op=%@"
+#define IDME_WEB_VERIFY_LOGOUT_PATH                     @"oauth/logout?client_id=%@&redirect_uri=%@%%3Ftype%%3Dlogout"
 
 /// Data Constants
 #define IDME_WEB_VERIFY_ACCESS_TOKEN_PARAM              @"access_token"
@@ -54,6 +55,7 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
 @property (nonatomic, strong) IDmeReachability *reachability;
 
 @property (copy, nonatomic, nullable) IDmeVerifyWebVerifyTokenResults webVerificationResults;
+@property (copy, nonatomic, nullable) IDmeVerifyWebLogoutCallback logoutCallback;
 
 @property (nonatomic, nullable, strong) NSString *codeVerifier;
 @property (nonatomic, nullable, strong) NSString *codeChallenge;
@@ -234,9 +236,16 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     }];
 }
 
-- (void)logout {
+- (void)logoutInViewController:(UIViewController *)externalViewController callback:(IDmeVerifyWebLogoutCallback _Nonnull)callback {
     [self.keychainData clean];
-    // can we delete cookies from Safari?
+
+    self.logoutCallback = callback;
+
+    NSString *stringUrl = [NSString stringWithFormat:[self urlStringWithQueryString:IDME_WEB_VERIFY_LOGOUT_PATH],
+                           self.clientID,
+                           self.redirectURI];
+    NSURL *url = [NSURL URLWithString:stringUrl];
+    [self launchSafariFromPresenting:externalViewController url:url];
 }
 
 - (BOOL)isLoggedIn {
@@ -404,6 +413,20 @@ typedef void (^RequestCompletion)(NSData * _Nullable data, NSURLResponse * _Null
     [self.safariViewController.presentingViewController dismissViewControllerAnimated:YES
                                                                            completion:nil];
     _safariViewController = nil;
+
+    if ([url.absoluteString hasPrefix:self.redirectURI] && [url.query containsString:@"type=logout"]) {
+        if (!self.logoutCallback) {
+            return YES;
+        }
+
+        void (^callback)(void) = self.logoutCallback;
+        self.logoutCallback = nil;
+        self.webVerificationResults = nil;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            callback();
+        });
+        return YES;
+    }
 
     if (self.codeVerifier == nil) {
         return NO;

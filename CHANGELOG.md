@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.0.3 (05/17/2017)
+
+- MOB-778: deleting Safari cookies at logout
+
 ## 4.0.2 (04/10/2017)
 
 - MOB-726: fixed issue embedding dependency frameworks
