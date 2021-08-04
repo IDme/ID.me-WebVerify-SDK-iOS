@@ -137,7 +137,7 @@ typedef NS_ENUM(NSUInteger, IDmeWebVerifyLoginType)
  @param externalViewController A view controller used to present a web browser which will clear the current session
  @param callback A block that will be called when the session is deleted
  */
-- (void)logoutInViewController:(UIViewController *)externalViewController callback:(IDmeVerifyWebLogoutCallback _Nonnull)callback;
+- (void)logoutInViewController:(UIViewController * _Nonnull)externalViewController callback:(IDmeVerifyWebLogoutCallback _Nonnull)callback;
 
 /**
  Registers a new connection for the user.
